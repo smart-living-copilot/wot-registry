@@ -1,0 +1,109 @@
+import { Blob } from 'node:buffer';
+
+import axios from 'axios';
+
+import { config } from '../config/env.js';
+import {
+  extractRegistryErrorMessage,
+  registryServiceHeaders,
+} from './thing-catalog-client.js';
+
+export type ContentStoreEntry = {
+  content_ref: string;
+  digest: string;
+  content_type: string;
+  size_bytes: number;
+  filename: string;
+  created_at: string;
+  expires_at: string | null;
+  ttl_seconds: number | null;
+  source: string | null;
+  metadata: Record<string, unknown>;
+  preview: string;
+  detail_url: string;
+  download_url: string;
+};
+
+type StoreContentBlobParams = {
+  payload: Buffer;
+  contentType: string;
+  filename?: string;
+  ttlSeconds?: number;
+  source?: string;
+  metadata?: Record<string, unknown>;
+};
+
+function contentUrl(path = ''): string {
+  const trimmed = path.replace(/^\/+/, '');
+  if (!trimmed) {
+    return `${config.registryUrl}/api/content`;
+  }
+  return `${config.registryUrl}/api/content/${trimmed}`;
+}
+
+export async function fetchContentBlob(
+  contentRef: string
+): Promise<{ payload: Buffer; contentType: string }> {
+  try {
+    const response = await axios.get(
+      contentUrl(`${encodeURIComponent(contentRef)}/download`),
+      {
+        headers: registryServiceHeaders(),
+        timeout: config.requestTimeoutMs,
+        responseType: 'arraybuffer',
+      }
+    );
+    const contentType =
+      typeof response.headers['content-type'] === 'string'
+        ? response.headers['content-type']
+        : 'application/octet-stream';
+    return {
+      payload: Buffer.from(response.data),
+      contentType,
+    };
+  } catch (error) {
+    throw new Error(
+      extractRegistryErrorMessage(error, `Failed to fetch content ref '${contentRef}'`)
+    );
+  }
+}
+
+export async function storeContentBlob(
+  params: StoreContentBlobParams
+): Promise<ContentStoreEntry> {
+  const normalizedContentType =
+    params.contentType.trim() || 'application/octet-stream';
+  const form = new FormData();
+
+  form.set(
+    'file',
+    new Blob([params.payload], { type: normalizedContentType }),
+    params.filename?.trim() || 'payload.bin'
+  );
+
+  if (typeof params.ttlSeconds === 'number' && params.ttlSeconds > 0) {
+    form.set('ttl_seconds', String(Math.trunc(params.ttlSeconds)));
+  }
+
+  if (params.source?.trim()) {
+    form.set('source', params.source.trim());
+  }
+
+  form.set('metadata_json', JSON.stringify(params.metadata || {}));
+
+  try {
+    const response = await axios.post<ContentStoreEntry>(
+      contentUrl('blob'),
+      form,
+      {
+        headers: registryServiceHeaders(),
+        timeout: config.requestTimeoutMs,
+      }
+    );
+    return response.data;
+  } catch (error) {
+    throw new Error(
+      extractRegistryErrorMessage(error, 'Failed to store oversized WoT payload')
+    );
+  }
+}

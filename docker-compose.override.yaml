@@ -1,0 +1,9 @@
+services:
+  wot-registry-stack:
+    volumes:
+      - ./backend:/app/backend
+      - ./wot_runtime:/app/wot_runtime
+      - ./proto:/app/proto
+      - /app/wot_runtime/node_modules
+      - ./docker/dev-rootfs/registry/run:/etc/s6-overlay/s6-rc.d/registry/run:ro
+      - ./docker/dev-rootfs/runtime/run:/etc/s6-overlay/s6-rc.d/runtime/run:ro
