@@ -70,7 +70,9 @@ export async function fetchContentBlob(contentRef: string): Promise<{ payload: B
       contentType,
     };
   } catch (error) {
-    throw new Error(extractRegistryErrorMessage(error, `Failed to fetch content ref '${contentRef}'`));
+    throw new Error(extractRegistryErrorMessage(error, `Failed to fetch content ref '${contentRef}'`), {
+      cause: error,
+    });
   }
 }
 
@@ -109,6 +111,8 @@ export async function storeContentBlob(params: StoreContentBlobParams): Promise<
     });
     return response.data;
   } catch (error) {
-    throw new Error(extractRegistryErrorMessage(error, 'Failed to store oversized WoT payload'));
+    throw new Error(extractRegistryErrorMessage(error, 'Failed to store oversized WoT payload'), {
+      cause: error,
+    });
   }
 }

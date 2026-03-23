@@ -97,7 +97,9 @@ export async function fetchThingDescription(thingId: string): Promise<{
 
     return { document, hash };
   } catch (error) {
-    throw new Error(extractRegistryErrorMessage(error, `Failed to fetch Thing Description '${thingId}'`));
+    throw new Error(extractRegistryErrorMessage(error, `Failed to fetch Thing Description '${thingId}'`), {
+      cause: error,
+    });
   }
 }
 

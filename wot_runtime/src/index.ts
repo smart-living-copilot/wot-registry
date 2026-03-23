@@ -6,7 +6,7 @@ import { requestHasRuntimeApiToken } from './auth/runtime-auth.js';
 import { config } from './config/env.js';
 import { createRuntimeRouter } from './http/runtime-routes.js';
 import log from './logger/index.js';
-import { ensureWotReady } from './runtime/servient.js';
+import { ensureWotReady, shutdownWot } from './runtime/servient.js';
 import { getRuntimeHealth } from './services/runtime-health.js';
 import { closeValkeyClient } from './services/stream-publisher.js';
 import { stopAllSubscriptions } from './services/subscriptions.js';
@@ -70,6 +70,8 @@ async function start(): Promise<void> {
     log.info(`Received ${signal}, shutting down wot_runtime`);
     httpServer.close(() => {
       void stopAllSubscriptions()
+        .catch(() => undefined)
+        .then(() => shutdownWot())
         .catch(() => undefined)
         .then(() => closeValkeyClient())
         .catch(() => undefined)

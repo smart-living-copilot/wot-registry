@@ -50,6 +50,12 @@ export class RuntimeError extends Error {
   status: number;
   details: string;
 
+  /**
+   * Creates an instance of RuntimeError.
+   *
+   * @param code The standardized runtime error code.
+   * @param message A human-readable error message.
+   */
   constructor(code: RuntimeErrorCode, message: string) {
     super(message);
     this.name = 'RuntimeError';
@@ -61,6 +67,9 @@ export class RuntimeError extends Error {
 
 /**
  * Checks if a value is a record object.
+ *
+ * @param value The value to check.
+ * @returns True if the value is a non-null object and not an array.
  */
 function isRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value) && typeof value === 'object' && !Array.isArray(value);

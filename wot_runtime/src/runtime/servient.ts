@@ -196,6 +196,7 @@ async function startWot(): Promise<any> {
     refreshTimer = setInterval(() => {
       void refreshSecrets();
     }, config.secretsRefreshIntervalMs);
+    log.debug(`Scheduled secrets refresh every ${config.secretsRefreshIntervalMs}ms`);
   }
 
   return wot;
@@ -222,6 +223,16 @@ export async function getWotClient(): Promise<any> {
  */
 export async function ensureWotReady(): Promise<void> {
   await getWotClient();
+}
+
+/**
+ * Cleans up the node-wot servient, stopping periodic tasks.
+ */
+export async function shutdownWot(): Promise<void> {
+  if (refreshTimer) {
+    clearInterval(refreshTimer);
+    refreshTimer = null;
+  }
 }
 
 /**
