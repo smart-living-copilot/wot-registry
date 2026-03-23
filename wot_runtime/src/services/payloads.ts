@@ -30,7 +30,9 @@ export function decodePayloadEnvelope(payload: any): unknown {
     return undefined;
   }
 
-  const contentType = String(payload.contentType || '').trim().toLowerCase();
+  const contentType = String(payload.contentType || '')
+    .trim()
+    .toLowerCase();
   const text = body.toString('utf8');
 
   if (!contentType || contentType.includes('json')) {
@@ -109,7 +111,7 @@ export async function encodeInteractionOutputPayload(
   output: any,
   options?: {
     onInvalidSchema?: (value: unknown) => void;
-  }
+  },
 ): Promise<{
   body: Buffer;
   contentType: string;

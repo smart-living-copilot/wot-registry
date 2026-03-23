@@ -55,11 +55,7 @@ function unwrapRuntimeThingSecrets(value: unknown): RuntimeThingSecrets | undefi
     return value;
   }
 
-  if (
-    Array.isArray(value) &&
-    value.length === 1 &&
-    isRuntimeThingSecrets(value[0])
-  ) {
+  if (Array.isArray(value) && value.length === 1 && isRuntimeThingSecrets(value[0])) {
     return value[0];
   }
 
@@ -79,20 +75,13 @@ function getPrimarySecurityMetadata(metadata: unknown): SecurityMetadata | undef
   return security as SecurityMetadata;
 }
 
-function resolveCredentialEntry(
-  metadata: unknown,
-  secrets: RuntimeThingSecrets
-): RuntimeCredentialEntry | undefined {
+function resolveCredentialEntry(metadata: unknown, secrets: RuntimeThingSecrets): RuntimeCredentialEntry | undefined {
   const security = getPrimarySecurityMetadata(metadata);
   const securityName =
-    typeof security?.[RUNTIME_SECURITY_NAME_FIELD] === 'string'
-      ? security[RUNTIME_SECURITY_NAME_FIELD]
-      : undefined;
+    typeof security?.[RUNTIME_SECURITY_NAME_FIELD] === 'string' ? security[RUNTIME_SECURITY_NAME_FIELD] : undefined;
 
   if (securityName) {
-    const matchingEntry = secrets.entries.find(
-      (entry) => entry.security_name === securityName
-    );
+    const matchingEntry = secrets.entries.find((entry) => entry.security_name === securityName);
     if (matchingEntry) {
       return matchingEntry;
     }
@@ -100,15 +89,13 @@ function resolveCredentialEntry(
 
   const scheme = typeof security?.scheme === 'string' ? security.scheme : undefined;
   if (scheme) {
-    const matchingEntries = secrets.entries.filter(
-      (entry) => entry.scheme === scheme
-    );
+    const matchingEntries = secrets.entries.filter((entry) => entry.scheme === scheme);
     if (matchingEntries.length === 1) {
       return matchingEntries[0];
     }
     if (matchingEntries.length > 1) {
       throw new Error(
-        `Multiple credentials match security scheme '${scheme}' and no security-name match was available`
+        `Multiple credentials match security scheme '${scheme}' and no security-name match was available`,
       );
     }
   }
@@ -120,10 +107,7 @@ function resolveCredentialEntry(
   return undefined;
 }
 
-export function resolveRuntimeCredentials(
-  metadata: unknown,
-  storedCredentials: unknown
-): PlainObject | undefined {
+export function resolveRuntimeCredentials(metadata: unknown, storedCredentials: unknown): PlainObject | undefined {
   const secrets = unwrapRuntimeThingSecrets(storedCredentials);
   if (!secrets) {
     if (storedCredentials === undefined) {
@@ -139,9 +123,7 @@ export function resolveRuntimeCredentials(
 
   const security = getPrimarySecurityMetadata(metadata);
   const securityName =
-    typeof security?.[RUNTIME_SECURITY_NAME_FIELD] === 'string'
-      ? security[RUNTIME_SECURITY_NAME_FIELD]
-      : undefined;
+    typeof security?.[RUNTIME_SECURITY_NAME_FIELD] === 'string' ? security[RUNTIME_SECURITY_NAME_FIELD] : undefined;
   const scheme = typeof security?.scheme === 'string' ? security.scheme : undefined;
 
   const requestedSecurity =
@@ -154,9 +136,7 @@ export function resolveRuntimeCredentials(
   throw new Error(`No credentials matched ${requestedSecurity}`);
 }
 
-export function installClientCredentialPatch(
-  clientClass: ClientSecurityPatchTarget
-): void {
+export function installClientCredentialPatch(clientClass: ClientSecurityPatchTarget): void {
   const prototype = clientClass.prototype;
   if (patchedSecurityTargets.has(prototype)) {
     return;
@@ -167,24 +147,14 @@ export function installClientCredentialPatch(
     throw new Error('Unable to install runtime credential patch for node-wot client');
   }
 
-  prototype.setSecurity = function patchedSetSecurity(
-    metadata: unknown,
-    credentials: unknown
-  ): unknown {
-    return originalSetSecurity.call(
-      this,
-      metadata,
-      resolveRuntimeCredentials(metadata, credentials)
-    );
+  prototype.setSecurity = function patchedSetSecurity(metadata: unknown, credentials: unknown): unknown {
+    return originalSetSecurity.call(this, metadata, resolveRuntimeCredentials(metadata, credentials));
   };
 
   patchedSecurityTargets.add(prototype);
 }
 
-export function applyRuntimeSecrets(
-  target: RuntimeSecretsTarget,
-  secrets: Record<string, unknown>
-): void {
+export function applyRuntimeSecrets(target: RuntimeSecretsTarget, secrets: Record<string, unknown>): void {
   if (target.credentialStore instanceof Map) {
     target.credentialStore.clear();
   }
@@ -198,9 +168,7 @@ export function applyRuntimeSecrets(
   }
 }
 
-export function annotateThingDescriptionSecurityNames(
-  document: Record<string, unknown>
-): void {
+export function annotateThingDescriptionSecurityNames(document: Record<string, unknown>): void {
   const securityDefinitions = document.securityDefinitions;
   if (!isPlainObject(securityDefinitions)) {
     return;

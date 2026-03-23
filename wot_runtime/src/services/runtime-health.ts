@@ -16,12 +16,8 @@ export type RuntimeHealth = {
 export async function getRuntimeHealth(): Promise<RuntimeHealth> {
   const runtime = getRuntimeSnapshot();
   const backendReachable = await pingThingCatalog();
-  const valkeyConfigured =
-    config.redisUrl.trim().length > 0 && (await pingValkey());
-  const status =
-    runtime.servientReady && backendReachable && valkeyConfigured
-      ? 'ok'
-      : 'degraded';
+  const valkeyConfigured = config.redisUrl.trim().length > 0 && (await pingValkey());
+  const status = runtime.servientReady && backendReachable && valkeyConfigured ? 'ok' : 'degraded';
 
   return {
     status,

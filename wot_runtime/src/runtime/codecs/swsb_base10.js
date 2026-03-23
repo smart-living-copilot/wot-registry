@@ -153,8 +153,7 @@ function decodeUplink(input) {
       case 'COMMAND_ID_GET_STATUS_PARAMETER_TX_ENABLE_REGISTER':
         data.radio = data.radio || {};
         data.radio.status_report = data.radio.status_report || {};
-        data.radio.status_report.parameter_tx_enable_reg =
-          data.radio.status_report.parameter_tx_enable_reg || {};
+        data.radio.status_report.parameter_tx_enable_reg = data.radio.status_report.parameter_tx_enable_reg || {};
 
         const statusParamTxEnableRegister = input.bytes[idx++];
 
@@ -187,13 +186,13 @@ function decodeUplink(input) {
       case 'COMMANF_ID_GET_STATUS':
         const statusParamTxStatus = input.bytes[idx++];
 
-        if (!!(statusParamTxStatus & (1 << 7))) {
+        if (statusParamTxStatus & (1 << 7)) {
           data.battery_voltage = data.battery_voltage || {};
           data.battery_voltage.value = (input.bytes[idx++] * 10 + 1500).toFixed(0);
           data.battery_voltage.unit = 'mV';
         }
 
-        if (!!(statusParamTxStatus & (1 << 6))) {
+        if (statusParamTxStatus & (1 << 6)) {
           data.heating_control = data.heating_control || {};
           data.heating_control.room_temperature = {};
 
@@ -205,7 +204,7 @@ function decodeUplink(input) {
           data.heating_control.room_temperature.unit = '°C';
         }
 
-        if (!!(statusParamTxStatus & (1 << 5))) {
+        if (statusParamTxStatus & (1 << 5)) {
           data.heating_control = data.heating_control || {};
           data.heating_control.set_point_temperature = {};
 
@@ -213,7 +212,7 @@ function decodeUplink(input) {
           data.heating_control.set_point_temperature.unit = '°C';
         }
 
-        if (!!(statusParamTxStatus & (1 << 4))) {
+        if (statusParamTxStatus & (1 << 4)) {
           data.heating_control = data.heating_control || {};
           data.heating_control.valve_position = {};
 
@@ -221,7 +220,7 @@ function decodeUplink(input) {
           data.heating_control.valve_position.unit = '%';
         }
 
-        if (!!(statusParamTxStatus & (1 << 3))) {
+        if (statusParamTxStatus & (1 << 3)) {
           data.heating_control = data.heating_control || {};
           data.heating_control.gain = data.heating_control.gain || {};
           data.heating_control.gain.p = {};
@@ -232,12 +231,11 @@ function decodeUplink(input) {
           data.heating_control.gain.unit = 'uint';
         }
 
-        if (!!(statusParamTxStatus & (1 << 2))) {
+        if (statusParamTxStatus & (1 << 2)) {
           data.heating_control = data.heating_control || {};
           data.heating_control.mode = data.heating_control.mode || {};
           data.heating_control.mode.holiday = data.heating_control.mode.holiday || {};
-          data.heating_control.mode.window_open_detection =
-            data.heating_control.mode.window_open_detection || {};
+          data.heating_control.mode.window_open_detection = data.heating_control.mode.window_open_detection || {};
 
           const device_flags = input.bytes[idx++];
 
@@ -250,10 +248,7 @@ function decodeUplink(input) {
           data.heating_control.mode.holiday.is_pending.unit = 'bool';
 
           data.heating_control.mode.window_open_detection.is_open = {};
-          data.heating_control.mode.window_open_detection.is_open.value = !!(
-            device_flags &
-            (1 << 3)
-          );
+          data.heating_control.mode.window_open_detection.is_open.value = !!(device_flags & (1 << 3));
           data.heating_control.mode.window_open_detection.is_open.unit = 'bool';
         }
         break;
@@ -291,8 +286,7 @@ function decodeUplink(input) {
         data.device_time.local.minute.value = (input.bytes[idx] >> 2) & 0x3f;
         data.device_time.local.minute.unit = 'min';
 
-        data.device_time.local.hour.value =
-          ((input.bytes[idx++] & 0x03) << 3) + (input.bytes[idx] >> 5);
+        data.device_time.local.hour.value = ((input.bytes[idx++] & 0x03) << 3) + (input.bytes[idx] >> 5);
         data.device_time.local.hour.unit = 'h';
 
         data.device_time.local.day.value = input.bytes[idx++] & 0x1f;
@@ -335,14 +329,10 @@ function decodeUplink(input) {
         data.device_time.config.auto_time_sync_en.value = !!(input.bytes[idx] >> 7);
         data.device_time.config.auto_time_sync_en.unit = 'bool';
 
-        data.device_time.config.utc_offset.value = (
-          (input.bytes[idx++] & 0x7f) * 0.25 -
-          12
-        ).toFixed(2);
+        data.device_time.config.utc_offset.value = ((input.bytes[idx++] & 0x7f) * 0.25 - 12).toFixed(2);
         data.device_time.config.utc_offset.unit = 'h';
 
-        data.device_time.config.utc_dst_begin.week_of_month.value =
-          WEEK_OF_MONTH[(input.bytes[idx] >> 4) & 0x0f];
+        data.device_time.config.utc_dst_begin.week_of_month.value = WEEK_OF_MONTH[(input.bytes[idx] >> 4) & 0x0f];
         data.device_time.config.utc_dst_begin.week_of_month.unit = 'string';
 
         data.device_time.config.utc_dst_begin.month.value = MONTH[input.bytes[idx++] & 0x0f];
@@ -354,14 +344,10 @@ function decodeUplink(input) {
         data.device_time.config.utc_dst_begin.hour.value = input.bytes[idx++] & 0x0f;
         data.device_time.config.utc_dst_begin.hour.unit = 'h';
 
-        data.device_time.config.utc_dst_offset.value = (
-          (input.bytes[idx++] & 0x7f) * 0.25 -
-          12
-        ).toFixed(2);
+        data.device_time.config.utc_dst_offset.value = ((input.bytes[idx++] & 0x7f) * 0.25 - 12).toFixed(2);
         data.device_time.config.utc_dst_offset.unit = 'h';
 
-        data.device_time.config.utc_dst_end.week_of_month.value =
-          WEEK_OF_MONTH[(input.bytes[idx] >> 4) & 0x0f];
+        data.device_time.config.utc_dst_end.week_of_month.value = WEEK_OF_MONTH[(input.bytes[idx] >> 4) & 0x0f];
         data.device_time.config.utc_dst_end.week_of_month.unit = 'string';
 
         data.device_time.config.utc_dst_end.month.value = MONTH[input.bytes[idx++] & 0x0f];
@@ -388,11 +374,9 @@ function decodeUplink(input) {
         data.heating_control.mode.holiday.is_pending = {};
         data.heating_control.mode.boost = data.heating_control.mode.boost || {};
         data.heating_control.mode.boost.is_active = {};
-        data.heating_control.mode.frost_protection =
-          data.heating_control.mode.frost_protection || {};
+        data.heating_control.mode.frost_protection = data.heating_control.mode.frost_protection || {};
         data.heating_control.mode.frost_protection.is_active = {};
-        data.heating_control.mode.window_open_detection =
-          data.heating_control.mode.window_open_detection || {};
+        data.heating_control.mode.window_open_detection = data.heating_control.mode.window_open_detection || {};
         data.heating_control.mode.window_open_detection.is_active = {};
         data.heating_control.mode.emergency = data.heating_control.mode.emergency || {};
         data.heating_control.mode.emergency.is_active = {};
@@ -411,16 +395,10 @@ function decodeUplink(input) {
         data.heating_control.mode.boost.is_active.value = !!(input.bytes[idx] & (1 << 3));
         data.heating_control.mode.boost.is_active.unit = 'bool';
 
-        data.heating_control.mode.frost_protection.is_active.value = !!(
-          input.bytes[idx] &
-          (1 << 2)
-        );
+        data.heating_control.mode.frost_protection.is_active.value = !!(input.bytes[idx] & (1 << 2));
         data.heating_control.mode.frost_protection.is_active.unit = 'bool';
 
-        data.heating_control.mode.window_open_detection.is_active.value = !!(
-          input.bytes[idx] &
-          (1 << 1)
-        );
+        data.heating_control.mode.window_open_detection.is_active.value = !!(input.bytes[idx] & (1 << 1));
         data.heating_control.mode.window_open_detection.is_active.unit = 'bool';
 
         data.heating_control.mode.emergency.is_active.value = !!(input.bytes[idx++] & (1 << 0));
@@ -461,8 +439,7 @@ function decodeUplink(input) {
         data.heating_control.mode.holiday.end.minute.value = ((input.bytes[idx] >> 2) & 0x0f) * 5;
         data.heating_control.mode.holiday.end.minute.unit = 'min';
 
-        data.heating_control.mode.holiday.end.hour.value =
-          ((input.bytes[idx++] & 0x03) << 3) + (input.bytes[idx] >> 5);
+        data.heating_control.mode.holiday.end.hour.value = ((input.bytes[idx++] & 0x03) << 3) + (input.bytes[idx] >> 5);
         data.heating_control.mode.holiday.end.hour.unit = 'h';
 
         data.heating_control.mode.holiday.end.day.value = input.bytes[idx++] & 0x1f;
@@ -479,9 +456,7 @@ function decodeUplink(input) {
         data.heating_control.mode.holiday.end.year.value = input.bytes[idx++] + 2000;
         data.heating_control.mode.holiday.end.year.unit = 'a';
 
-        data.heating_control.mode.holiday.set_point_temperature.value = (
-          input.bytes[idx++] * 0.5
-        ).toFixed(1);
+        data.heating_control.mode.holiday.set_point_temperature.value = (input.bytes[idx++] * 0.5).toFixed(1);
         data.heating_control.mode.holiday.set_point_temperature.unit = '°C';
         break;
       case 'COMMAND_ID_GET_BOOST_CONFIG':
@@ -495,9 +470,7 @@ function decodeUplink(input) {
         data.heating_control.mode.boost.config.duration.unit = 's';
 
         data.heating_control.mode.boost.config.valve_position = {};
-        data.heating_control.mode.boost.config.valve_position.value = (
-          input.bytes[idx++] * 0.5
-        ).toFixed(0);
+        data.heating_control.mode.boost.config.valve_position.value = (input.bytes[idx++] * 0.5).toFixed(0);
         data.heating_control.mode.boost.config.valve_position.unit = '%';
         break;
       case 'COMMAND_ID_GET_WEEK_PROGRAM':
@@ -534,30 +507,19 @@ function decodeUplink(input) {
           time_switching_point.minute = (input.bytes[idx] >> 4) * 5;
           time_switching_point.hour = ((input.bytes[idx++] & 0x0f) << 1) + (input.bytes[idx] >> 7);
           time_switching_point.weekdays = input.bytes[idx++] & 0x7f;
-          time_switching_point.set_point_temperature = parseFloat(
-            (input.bytes[idx++] * 0.5).toFixed(1)
-          );
+          time_switching_point.set_point_temperature = parseFloat((input.bytes[idx++] * 0.5).toFixed(1));
 
           switch (week_program_nbr) {
             case 0:
-              data.heating_control.mode.auto.week_program_1[i] = Object.assign(
-                {},
-                time_switching_point
-              );
+              data.heating_control.mode.auto.week_program_1[i] = Object.assign({}, time_switching_point);
               break;
 
             case 1:
-              data.heating_control.mode.auto.week_program_2[i] = Object.assign(
-                {},
-                time_switching_point
-              );
+              data.heating_control.mode.auto.week_program_2[i] = Object.assign({}, time_switching_point);
               break;
 
             case 2:
-              data.heating_control.mode.auto.week_program_3[i] = Object.assign(
-                {},
-                time_switching_point
-              );
+              data.heating_control.mode.auto.week_program_3[i] = Object.assign({}, time_switching_point);
               break;
             default:
               break;
@@ -577,9 +539,7 @@ function decodeUplink(input) {
         data.heating_control.mode.manu_pos = data.heating_control.mode.manu_pos || {};
         data.heating_control.mode.manu_pos.valve_set_point_position = {};
 
-        data.heating_control.mode.manu_pos.valve_set_point_position.value = (
-          input.bytes[idx++] * 0.5
-        ).toFixed(0);
+        data.heating_control.mode.manu_pos.valve_set_point_position.value = (input.bytes[idx++] * 0.5).toFixed(0);
         data.heating_control.mode.manu_pos.valve_set_point_position.unit = '%';
         break;
       case 'COMMAND_ID_GET_VALVE_OFFSET':
@@ -588,9 +548,7 @@ function decodeUplink(input) {
         data.heating_control.config.valve = data.heating_control.config.valve || {};
 
         data.heating_control.config.valve.position_offset = {};
-        data.heating_control.config.valve.position_offset.value = (
-          input.bytes[idx++] * 0.5
-        ).toFixed(0);
+        data.heating_control.config.valve.position_offset.value = (input.bytes[idx++] * 0.5).toFixed(0);
         data.heating_control.config.valve.position_offset.unit = '%';
         break;
       case 'COMMAND_ID_GET_VALVE_MAXIMUM_POSITION':
@@ -599,23 +557,20 @@ function decodeUplink(input) {
         data.heating_control.config.valve = data.heating_control.config.valve || {};
 
         data.heating_control.config.valve.max_position = {};
-        data.heating_control.config.valve.max_position.value = (input.bytes[idx++] * 0.5).toFixed(
-          0
-        );
+        data.heating_control.config.valve.max_position.value = (input.bytes[idx++] * 0.5).toFixed(0);
         data.heating_control.config.valve.max_position.unit = '%';
         break;
       case 'COMMAND_ID_GET_VALVE_EMERGENCY_POSITION':
         data.heating_control = data.heating_control || {};
         data.heating_control.mode = data.heating_control.mode || {};
         data.heating_control.mode.emergency = data.heating_control.mode.emergency || {};
-        data.heating_control.mode.emergency.config =
-          data.heating_control.mode.emergency.config || {};
+        data.heating_control.mode.emergency.config = data.heating_control.mode.emergency.config || {};
         data.heating_control.mode.emergency.config.valve_set_point_position =
           data.heating_control.mode.emergency.config.valve_set_point_position || {};
 
-        data.heating_control.mode.emergency.config.valve_set_point_position.value = (
-          input.bytes[idx++] * 0.5
-        ).toFixed(0);
+        data.heating_control.mode.emergency.config.valve_set_point_position.value = (input.bytes[idx++] * 0.5).toFixed(
+          0,
+        );
         data.heating_control.mode.emergency.config.valve_set_point_position.unit = '%';
         break;
       case 'COMMAND_ID_GET_SET_POINT_TEMPERATURE':
@@ -630,23 +585,18 @@ function decodeUplink(input) {
         data.heating_control = data.heating_control || {};
         data.heating_control.config = data.heating_control.config || {};
         data.heating_control.config.temperature = data.heating_control.config.temperature || {};
-        data.heating_control.config.temperature.offset =
-          data.heating_control.config.temperature.offset || {};
+        data.heating_control.config.temperature.offset = data.heating_control.config.temperature.offset || {};
 
-        data.heating_control.config.temperature.offset.value = (
-          input.bytes[idx++] * 0.1 -
-          12.8
-        ).toFixed(1);
+        data.heating_control.config.temperature.offset.value = (input.bytes[idx++] * 0.1 - 12.8).toFixed(1);
         data.heating_control.config.temperature.offset.unit = 'K';
         break;
       case 'COMMAND_ID_GET_HEATING_CNTRL_INPUT_ROOM_TEMPERATURE':
         data.heating_control = data.heating_control || {};
         data.heating_control.room_temperature = {};
 
-        data.heating_control.room_temperature.value = (
-          ((input.bytes[idx] << 8) | input.bytes[idx + 1]) *
-          0.1
-        ).toFixed(1);
+        data.heating_control.room_temperature.value = (((input.bytes[idx] << 8) | input.bytes[idx + 1]) * 0.1).toFixed(
+          1,
+        );
         idx = idx + 2;
         data.heating_control.room_temperature.unit = '°C';
         break;
@@ -662,17 +612,11 @@ function decodeUplink(input) {
         data.heating_control.config = data.heating_control.config || {};
 
         data.heating_control.config.adaptive_gain_adjustment_enabled = {};
-        data.heating_control.config.adaptive_gain_adjustment_enabled.value = !!(
-          input.bytes[idx] &
-          (1 << 7)
-        );
+        data.heating_control.config.adaptive_gain_adjustment_enabled.value = !!(input.bytes[idx] & (1 << 7));
         data.heating_control.config.adaptive_gain_adjustment_enabled.unit = 'bool';
 
         data.heating_control.config.controller_temperature_input_select = {};
-        data.heating_control.config.controller_temperature_input_select.value = !!(
-          input.bytes[idx++] &
-          (1 << 6)
-        );
+        data.heating_control.config.controller_temperature_input_select.value = !!(input.bytes[idx++] & (1 << 6));
         data.heating_control.config.controller_temperature_input_select.unit = 'bool';
         break;
       case 'COMMAND_ID_GET_HEATING_CNTRL_STATIC_GAINS':
@@ -681,8 +625,7 @@ function decodeUplink(input) {
         data.heating_control.config.static_gain = data.heating_control.config.static_gain || {};
 
         data.heating_control.config.static_gain.p = {};
-        data.heating_control.config.static_gain.p.value =
-          (input.bytes[idx++] << 8) + input.bytes[idx++];
+        data.heating_control.config.static_gain.p.value = (input.bytes[idx++] << 8) + input.bytes[idx++];
         data.heating_control.config.static_gain.i = {};
         data.heating_control.config.static_gain.i.value = input.bytes[idx++] / 1000000;
         data.heating_control.config.static_gain.unit = 'uint';
@@ -700,20 +643,16 @@ function decodeUplink(input) {
       case 'COMMAND_ID_GET_WINDOW_OPEN_STATUS':
         data.heating_control = data.heating_control || {};
         data.heating_control.mode = data.heating_control.mode || {};
-        data.heating_control.mode.window_open_detection =
-          data.heating_control.mode.window_open_detection || {};
+        data.heating_control.mode.window_open_detection = data.heating_control.mode.window_open_detection || {};
 
         data.heating_control.mode.window_open_detection.is_open = {};
-        data.heating_control.mode.window_open_detection.is_open.value = !!(
-          input.bytes[idx++] & 0x01
-        );
+        data.heating_control.mode.window_open_detection.is_open.value = !!(input.bytes[idx++] & 0x01);
         data.heating_control.mode.window_open_detection.is_open.unit = 'bool';
         break;
       case 'COMMAND_ID_GET_WINDOW_OPEN_DETECTION_CONFIG':
         data.heating_control = data.heating_control || {};
         data.heating_control.mode = data.heating_control.mode || {};
-        data.heating_control.mode.window_open_detection =
-          data.heating_control.mode.window_open_detection || {};
+        data.heating_control.mode.window_open_detection = data.heating_control.mode.window_open_detection || {};
         data.heating_control.mode.window_open_detection.config =
           data.heating_control.mode.window_open_detection.config || {};
 
@@ -723,10 +662,7 @@ function decodeUplink(input) {
         data.heating_control.mode.window_open_detection.config.temperature_delta = {};
         data.heating_control.mode.window_open_detection.config.open_temperature = {};
 
-        data.heating_control.mode.window_open_detection.config.source.value = !!(
-          input.bytes[idx] &
-          (1 << 3)
-        );
+        data.heating_control.mode.window_open_detection.config.source.value = !!(input.bytes[idx] & (1 << 3));
         data.heating_control.mode.window_open_detection.config.source.unit = 'bool';
 
         data.heating_control.mode.window_open_detection.config.enable_mode.holiday = {};
@@ -736,18 +672,14 @@ function decodeUplink(input) {
           input.bytes[idx] &
           (1 << 0)
         );
-        data.heating_control.mode.window_open_detection.config.enable_mode.auto.value = !!(
-          input.bytes[idx] &
-          (1 << 1)
-        );
+        data.heating_control.mode.window_open_detection.config.enable_mode.auto.value = !!(input.bytes[idx] & (1 << 1));
         data.heating_control.mode.window_open_detection.config.enable_mode.manu_temp.value = !!(
           input.bytes[idx++] &
           (1 << 2)
         );
         data.heating_control.mode.window_open_detection.config.enable_mode.unit = 'bool';
 
-        data.heating_control.mode.window_open_detection.config.open_duration.value =
-          (input.bytes[idx] >> 5) * 10 + 10;
+        data.heating_control.mode.window_open_detection.config.open_duration.value = (input.bytes[idx] >> 5) * 10 + 10;
         data.heating_control.mode.window_open_detection.config.open_duration.unit = 'min';
 
         data.heating_control.mode.window_open_detection.config.temperature_delta.value = (
@@ -764,16 +696,14 @@ function decodeUplink(input) {
       case 'COMMAND_ID_GET_DECALCIFICATION_CONFIG':
         data.heating_control = data.heating_control || {};
         data.heating_control.config = data.heating_control.config || {};
-        data.heating_control.config.decalcification_time =
-          data.heating_control.config.decalcification_time || {};
+        data.heating_control.config.decalcification_time = data.heating_control.config.decalcification_time || {};
 
         data.heating_control.config.decalcification_time.weekday = {};
         data.heating_control.config.decalcification_time.week_of_month = {};
         data.heating_control.config.decalcification_time.hour = {};
         data.heating_control.config.decalcification_time.minute = {};
 
-        data.heating_control.config.decalcification_time.weekday.value =
-          WEEKDAY[input.bytes[idx] >> 4];
+        data.heating_control.config.decalcification_time.weekday.value = WEEKDAY[input.bytes[idx] >> 4];
         data.heating_control.config.decalcification_time.weekday.unit = 'string';
 
         data.heating_control.config.decalcification_time.week_of_month.value =
@@ -783,8 +713,7 @@ function decodeUplink(input) {
         data.heating_control.config.decalcification_time.hour.value =
           ((input.bytes[idx++] & 0x01) << 4) + (input.bytes[idx] >> 4);
         data.heating_control.config.decalcification_time.hour.unit = 'h';
-        data.heating_control.config.decalcification_time.minute.value =
-          (input.bytes[idx++] & 0x0f) * 5;
+        data.heating_control.config.decalcification_time.minute.value = (input.bytes[idx++] & 0x0f) * 5;
         break;
       case 'COMMAND_ID_COMMAND_FAILED':
         data.radio = data.radio || {};
@@ -812,12 +741,9 @@ function decodeUplink(input) {
         break;
       case 'COMMAND_ID_GET_HARDWARE_LOCK':
         data.button_action = data.button_action || {};
-        data.button_action.hw_factory_reset_locked =
-          data.button_action.hw_factory_reset_locked || {};
-        data.button_action.hw_set_point_temp_locked =
-          data.button_action.hw_set_point_temp_locked || {};
-        data.button_action.hw_system_button_locked =
-          data.button_action.hw_system_button_locked || {};
+        data.button_action.hw_factory_reset_locked = data.button_action.hw_factory_reset_locked || {};
+        data.button_action.hw_set_point_temp_locked = data.button_action.hw_set_point_temp_locked || {};
+        data.button_action.hw_system_button_locked = data.button_action.hw_system_button_locked || {};
 
         data.button_action.hw_factory_reset_locked.value = !!(input.bytes[idx] & 0x01);
         data.button_action.hw_factory_reset_locked.unit = 'bool';
@@ -886,8 +812,7 @@ function decodeUplink(input) {
         data.radio.cyclic_rejoin.conf.value = REJOIN_BEHAVIOR[Number(!(input.bytes[idx] >> 7))];
         data.radio.cyclic_rejoin.conf.unit = 'string';
 
-        data.radio.cyclic_rejoin.interval.value =
-          (input.bytes[idx++] & 0x7f) * 255 + input.bytes[idx++];
+        data.radio.cyclic_rejoin.interval.value = (input.bytes[idx++] & 0x7f) * 255 + input.bytes[idx++];
         data.radio.cyclic_rejoin.interval.unit = 'h';
         break;
       case 'COMMAND_ID_GET_VERSION':
@@ -961,12 +886,7 @@ function schemaDrivenDecode(value, schema) {
 
   // 2. Traversal: Object
   // We need to traverse if the value is an object and the schema describes properties
-  if (
-    typeof value === 'object' &&
-    !Array.isArray(value) &&
-    schema.type === 'object' &&
-    schema.properties
-  ) {
+  if (typeof value === 'object' && !Array.isArray(value) && schema.type === 'object' && schema.properties) {
     const newValue = { ...value };
     for (const key in value) {
       if (schema.properties[key]) {

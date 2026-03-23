@@ -12,18 +12,11 @@ import { config } from '../config/env.js';
 import log from '../logger/index.js';
 import { formatError } from '../services/errors.js';
 import SWSBBase10 from './codecs/swsb_base10.js';
-import {
-  applyRuntimeSecrets,
-  installClientCredentialPatch,
-} from './credentials.js';
+import { applyRuntimeSecrets, installClientCredentialPatch } from './credentials.js';
 
 const { Servient, ContentSerdes } = wotCore as any;
 const { HttpClient, HttpClientFactory, HttpsClientFactory } = wotHttp as any;
-const {
-  CoapClientFactory,
-  CoapsClient,
-  CoapsClientFactory,
-} = wotCoap as any;
+const { CoapClientFactory, CoapsClient, CoapsClientFactory } = wotCoap as any;
 const { FileClientFactory } = wotFile as any;
 const { MBusClientFactory } = wotMBus as any;
 const { ModbusClientFactory } = wotModbus as any;

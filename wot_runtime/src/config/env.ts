@@ -34,14 +34,8 @@ export const config = {
   requestTimeoutMs: parseIntEnv('HTTP_REQUEST_TIMEOUT_MS', 10000),
   subscriptionSetupTimeoutMs: parseIntEnv('WOT_SUBSCRIPTION_SETUP_TIMEOUT_MS', 0),
   secretsRefreshIntervalMs: parseIntEnv('SECRETS_REFRESH_INTERVAL_MS', 60000),
-  inlinePayloadMaxBytes: parseNonNegativeIntEnv(
-    'WOT_INLINE_PAYLOAD_MAX_BYTES',
-    65536
-  ),
-  offloadedPayloadTtlSeconds: parseNonNegativeIntEnv(
-    'WOT_OFFLOADED_PAYLOAD_TTL_SECONDS',
-    86400
-  ),
+  inlinePayloadMaxBytes: parseNonNegativeIntEnv('WOT_INLINE_PAYLOAD_MAX_BYTES', 65536),
+  offloadedPayloadTtlSeconds: parseNonNegativeIntEnv('WOT_OFFLOADED_PAYLOAD_TTL_SECONDS', 86400),
 } as const;
 
 export type AppConfig = typeof config;

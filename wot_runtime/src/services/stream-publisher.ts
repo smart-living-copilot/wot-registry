@@ -62,9 +62,7 @@ function toFieldValue(value: unknown): string {
   return String(value);
 }
 
-export async function publishRuntimeStreamEvent(
-  event: RuntimeStreamEvent
-): Promise<void> {
+export async function publishRuntimeStreamEvent(event: RuntimeStreamEvent): Promise<void> {
   const client = await getRedisClient();
   const fields = [
     'event_type',

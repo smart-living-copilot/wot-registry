@@ -30,8 +30,6 @@ function tokensMatch(candidate: string | null): boolean {
   return crypto.timingSafeEqual(left, right);
 }
 
-export function requestHasRuntimeApiToken(request: {
-  get(name: string): string | undefined;
-}): boolean {
+export function requestHasRuntimeApiToken(request: { get(name: string): string | undefined }): boolean {
   return tokensMatch(extractBearerToken(request.get('authorization')));
 }

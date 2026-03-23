@@ -2,15 +2,8 @@ import log from '../logger/index.js';
 import { annotateThingDescriptionSecurityNames } from '../runtime/credentials.js';
 import { getWotClient } from '../runtime/servient.js';
 import { config } from '../config/env.js';
-import {
-  type ContentStoreEntry,
-  fetchContentBlob,
-  storeContentBlob,
-} from '../services/content-store-client.js';
-import {
-  fetchThingDescription,
-  type ThingDescription,
-} from '../services/thing-catalog-client.js';
+import { type ContentStoreEntry, fetchContentBlob, storeContentBlob } from '../services/content-store-client.js';
+import { fetchThingDescription, type ThingDescription } from '../services/thing-catalog-client.js';
 import {
   decodePayloadEnvelope,
   encodeInteractionOutputPayload,
@@ -18,10 +11,7 @@ import {
   normalizeBody,
 } from '../services/payloads.js';
 import { createRuntimeError, formatError } from '../services/errors.js';
-import {
-  getAffordanceDefinition,
-  resolveFormIndex,
-} from '../services/form-selection.js';
+import { getAffordanceDefinition, resolveFormIndex } from '../services/form-selection.js';
 import { getRuntimeHealth } from '../services/runtime-health.js';
 
 type InteractionOperation = 'read_property' | 'invoke_action';
@@ -35,7 +25,9 @@ const CONTENT_REF_MEDIA_TYPE = 'application/vnd.wot.content-ref+json';
 
 function isContentRefPayload(payload: any): boolean {
   if (!payload) return false;
-  const ct = String(payload.contentType || '').trim().toLowerCase();
+  const ct = String(payload.contentType || '')
+    .trim()
+    .toLowerCase();
   return ct === CONTENT_REF_MEDIA_TYPE;
 }
 
@@ -52,10 +44,7 @@ async function resolveContentRefInput(payload: any): Promise<any> {
   }
 
   if (!contentRef) {
-    throw createRuntimeError(
-      'invalid_argument',
-      'Content reference is empty'
-    );
+    throw createRuntimeError('invalid_argument', 'Content reference is empty');
   }
 
   log.info(`Resolving content ref '${contentRef}' for action input`);
@@ -89,10 +78,7 @@ function decodeUriVariables(uriVariables: any[] | undefined): Record<string, unk
   return values;
 }
 
-function buildInteractionOptions(
-  request: any,
-  resolvedFormIndex?: number
-): Record<string, unknown> | undefined {
+function buildInteractionOptions(request: any, resolvedFormIndex?: number): Record<string, unknown> | undefined {
   const options: Record<string, unknown> = {};
   const uriVariables = decodeUriVariables(request.uriVariables);
 
@@ -110,10 +96,9 @@ function buildInteractionOptions(
 
 function buildEncodedInteractionResponse(
   payload: { body: Buffer; contentType: string },
-  responseContentType?: string
+  responseContentType?: string,
 ): { response: any } {
-  const normalizedResponseContentType =
-    responseContentType || payload.contentType || 'application/json';
+  const normalizedResponseContentType = responseContentType || payload.contentType || 'application/json';
 
   return {
     response: {
@@ -131,17 +116,14 @@ function buildEncodedInteractionResponse(
   };
 }
 
-function buildInteractionResponse(
-  value: unknown,
-  contentType?: string
-): { response: any } {
+function buildInteractionResponse(value: unknown, contentType?: string): { response: any } {
   const payload = encodePayloadEnvelope(value, contentType);
   return buildEncodedInteractionResponse(
     {
       body: normalizeBody(payload.body),
       contentType: String(payload.contentType || contentType || 'application/json'),
     },
-    contentType || String(payload.contentType || 'application/json')
+    contentType || String(payload.contentType || 'application/json'),
   );
 }
 
@@ -166,7 +148,7 @@ function buildContentRefHandle(entry: ContentStoreEntry): {
       detail_url: entry.detail_url,
       download_url: entry.download_url,
     },
-    CONTENT_REF_MEDIA_TYPE
+    CONTENT_REF_MEDIA_TYPE,
   );
 
   return {
@@ -182,7 +164,7 @@ async function buildOffloadAwareInteractionResponse(
     affordanceName: string;
     operation: InteractionOperation;
     tdHash: string;
-  }
+  },
 ): Promise<{ response: any }> {
   if (payload.body.length <= config.inlinePayloadMaxBytes) {
     return buildEncodedInteractionResponse(
@@ -190,7 +172,7 @@ async function buildOffloadAwareInteractionResponse(
         body: payload.body,
         contentType: payload.contentType,
       },
-      payload.contentType
+      payload.contentType,
     );
   }
 
@@ -211,18 +193,12 @@ async function buildOffloadAwareInteractionResponse(
     const entry = await storeContentBlob({
       payload: payload.body,
       contentType: payload.contentType,
-      ttlSeconds:
-        config.offloadedPayloadTtlSeconds > 0
-          ? config.offloadedPayloadTtlSeconds
-          : undefined,
+      ttlSeconds: config.offloadedPayloadTtlSeconds > 0 ? config.offloadedPayloadTtlSeconds : undefined,
       source: `wot_runtime.${context.operation}`,
       metadata,
     });
 
-    return buildEncodedInteractionResponse(
-      buildContentRefHandle(entry),
-      CONTENT_REF_MEDIA_TYPE
-    );
+    return buildEncodedInteractionResponse(buildContentRefHandle(entry), CONTENT_REF_MEDIA_TYPE);
   } catch (error) {
     log.warn(
       `Failed to offload oversized ${context.operation} output for '${context.thingId}/${context.affordanceName}', returning inline payload: ${formatError(error)}`,
@@ -232,7 +208,7 @@ async function buildOffloadAwareInteractionResponse(
         body: payload.body,
         contentType: payload.contentType,
       },
-      payload.contentType
+      payload.contentType,
     );
   }
 }
@@ -279,28 +255,17 @@ export async function handleReadProperty(request: any): Promise<any> {
   const thingId = getRequestedThingId(request);
   const propertyName = String(request?.target?.affordanceName || '').trim();
   if (!propertyName) {
-    throw createRuntimeError(
-      'invalid_argument',
-      'target.affordance_name is required for ReadProperty'
-    );
+    throw createRuntimeError('invalid_argument', 'target.affordance_name is required for ReadProperty');
   }
 
   const { thing, document, hash } = await consumeThing(request);
   if (!getAffordanceDefinition(document, propertyName, 'readproperty')) {
-    throw createRuntimeError(
-      'not_found',
-      `Thing '${thingId}' does not define property '${propertyName}'`
-    );
+    throw createRuntimeError('not_found', `Thing '${thingId}' does not define property '${propertyName}'`);
   }
 
   const resolvedFormIndex = (() => {
     try {
-      return resolveFormIndex(
-        document,
-        propertyName,
-        'readproperty',
-        request?.formSelector
-      );
+      return resolveFormIndex(document, propertyName, 'readproperty', request?.formSelector);
     } catch (error) {
       throw createRuntimeError('invalid_argument', formatError(error));
     }
@@ -311,9 +276,7 @@ export async function handleReadProperty(request: any): Promise<any> {
 
   const payload = await encodeInteractionOutputPayload(result, {
     onInvalidSchema: () => {
-      log.warn(
-        `Property '${propertyName}' returned data that failed schema validation, returning raw value`,
-      );
+      log.warn(`Property '${propertyName}' returned data that failed schema validation, returning raw value`);
     },
   });
 
@@ -329,10 +292,7 @@ export async function handleWriteProperty(request: any): Promise<any> {
   const thingId = getRequestedThingId(request);
   const propertyName = String(request?.target?.affordanceName || '').trim();
   if (!propertyName) {
-    throw createRuntimeError(
-      'invalid_argument',
-      'target.affordance_name is required for WriteProperty'
-    );
+    throw createRuntimeError('invalid_argument', 'target.affordance_name is required for WriteProperty');
   }
 
   const resolvedWriteInput = isContentRefPayload(request.input)
@@ -340,28 +300,17 @@ export async function handleWriteProperty(request: any): Promise<any> {
     : request.input;
   const input = decodePayloadEnvelope(resolvedWriteInput);
   if (input === undefined) {
-    throw createRuntimeError(
-      'invalid_argument',
-      'input payload is required for WriteProperty'
-    );
+    throw createRuntimeError('invalid_argument', 'input payload is required for WriteProperty');
   }
 
   const { thing, document } = await consumeThing(request);
   if (!getAffordanceDefinition(document, propertyName, 'writeproperty')) {
-    throw createRuntimeError(
-      'not_found',
-      `Thing '${thingId}' does not define property '${propertyName}'`
-    );
+    throw createRuntimeError('not_found', `Thing '${thingId}' does not define property '${propertyName}'`);
   }
 
   const resolvedFormIndex = (() => {
     try {
-      return resolveFormIndex(
-        document,
-        propertyName,
-        'writeproperty',
-        request?.formSelector
-      );
+      return resolveFormIndex(document, propertyName, 'writeproperty', request?.formSelector);
     } catch (error) {
       throw createRuntimeError('invalid_argument', formatError(error));
     }
@@ -377,28 +326,17 @@ export async function handleInvokeAction(request: any): Promise<any> {
   const thingId = getRequestedThingId(request);
   const actionName = String(request?.target?.affordanceName || '').trim();
   if (!actionName) {
-    throw createRuntimeError(
-      'invalid_argument',
-      'target.affordance_name is required for InvokeAction'
-    );
+    throw createRuntimeError('invalid_argument', 'target.affordance_name is required for InvokeAction');
   }
 
   const { thing, document, hash } = await consumeThing(request);
   if (!getAffordanceDefinition(document, actionName, 'invokeaction')) {
-    throw createRuntimeError(
-      'not_found',
-      `Thing '${thingId}' does not define action '${actionName}'`
-    );
+    throw createRuntimeError('not_found', `Thing '${thingId}' does not define action '${actionName}'`);
   }
 
   const resolvedFormIndex = (() => {
     try {
-      return resolveFormIndex(
-        document,
-        actionName,
-        'invokeaction',
-        request?.formSelector
-      );
+      return resolveFormIndex(document, actionName, 'invokeaction', request?.formSelector);
     } catch (error) {
       throw createRuntimeError('invalid_argument', formatError(error));
     }
@@ -411,13 +349,10 @@ export async function handleInvokeAction(request: any): Promise<any> {
   const input = decodePayloadEnvelope(resolvedInput);
   const actionDef = getAffordanceDefinition(document, actionName, 'invokeaction');
 
-  if (
-    isPlainObject(actionDef) &&
-    actionDef.synchronous === false
-  ) {
+  if (isPlainObject(actionDef) && actionDef.synchronous === false) {
     throw createRuntimeError(
       'unimplemented',
-      `Action '${actionName}' declares synchronous=false and query/cancel support is not implemented yet`
+      `Action '${actionName}' declares synchronous=false and query/cancel support is not implemented yet`,
     );
   }
 
@@ -429,9 +364,7 @@ export async function handleInvokeAction(request: any): Promise<any> {
   if (result) {
     const payload = await encodeInteractionOutputPayload(result, {
       onInvalidSchema: () => {
-        log.warn(
-          `Action '${actionName}' returned data that failed output schema validation, returning raw value`,
-        );
+        log.warn(`Action '${actionName}' returned data that failed output schema validation, returning raw value`);
       },
     });
     return {

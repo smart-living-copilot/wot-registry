@@ -4,16 +4,10 @@ import { config } from '../config/env.js';
 import log from '../logger/index.js';
 import { annotateThingDescriptionSecurityNames } from '../runtime/credentials.js';
 import { getWotClient } from '../runtime/servient.js';
-import {
-  getAffordanceDefinition,
-  resolveFormIndex,
-} from './form-selection.js';
+import { getAffordanceDefinition, resolveFormIndex } from './form-selection.js';
 import type { ThingDescription } from './thing-catalog-client.js';
 import { fetchThingDescription } from './thing-catalog-client.js';
-import {
-  decodePayloadEnvelope,
-  encodeInteractionOutputPayload,
-} from './payloads.js';
+import { decodePayloadEnvelope, encodeInteractionOutputPayload } from './payloads.js';
 import { createRuntimeError, formatError } from './errors.js';
 import { publishRuntimeStreamEvent } from './stream-publisher.js';
 
@@ -46,28 +40,19 @@ function isPlainObject(value: unknown): value is Record<string, unknown> {
   return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
 }
 
-function hasStopMethod(
-  value: unknown
-): value is { stop: (options?: Record<string, unknown>) => Promise<void> } {
+function hasStopMethod(value: unknown): value is { stop: (options?: Record<string, unknown>) => Promise<void> } {
   if (!value || typeof value !== 'object') {
     return false;
   }
 
-  return (
-    'stop' in value &&
-    typeof value.stop === 'function'
-  );
+  return 'stop' in value && typeof value.stop === 'function';
 }
 
 function isObservablePropertyDefinition(value: unknown): boolean {
   return isPlainObject(value) && value.observable === true;
 }
 
-async function withTimeout<T>(
-  promise: Promise<T>,
-  timeoutMs: number,
-  message: string
-): Promise<T> {
+async function withTimeout<T>(promise: Promise<T>, timeoutMs: number, message: string): Promise<T> {
   let timeoutId: ReturnType<typeof setTimeout> | undefined;
 
   try {
@@ -86,11 +71,7 @@ async function withTimeout<T>(
   }
 }
 
-async function withOptionalTimeout<T>(
-  promise: Promise<T>,
-  timeoutMs: number,
-  message: string
-): Promise<T> {
+async function withOptionalTimeout<T>(promise: Promise<T>, timeoutMs: number, message: string): Promise<T> {
   if (timeoutMs <= 0) {
     return promise;
   }
@@ -100,7 +81,7 @@ async function withOptionalTimeout<T>(
 
 function ensureRuntimeSubscription(
   value: unknown,
-  message: string
+  message: string,
 ): { stop: (options?: Record<string, unknown>) => Promise<void> } {
   if (hasStopMethod(value)) {
     return value;
@@ -141,7 +122,7 @@ function decodeUriVariables(uriVariables: any[] | undefined): Record<string, unk
 function buildInteractionOptions(
   request: any,
   resolvedFormIndex?: number,
-  extraData?: unknown
+  extraData?: unknown,
 ): Record<string, unknown> | undefined {
   const options: Record<string, unknown> = {};
   const uriVariables = decodeUriVariables(request?.uriVariables);
@@ -162,11 +143,7 @@ function buildInteractionOptions(
   return Object.keys(options).length > 0 ? options : undefined;
 }
 
-function buildSubscriptionKey(
-  request: any,
-  operationName: OperationName,
-  extraData?: unknown
-): string {
+function buildSubscriptionKey(request: any, operationName: OperationName, extraData?: unknown): string {
   return stableSerialize({
     thingId: String(request?.target?.thingId || '').trim(),
     name: String(request?.target?.affordanceName || '').trim(),
@@ -193,12 +170,8 @@ async function consumeThing(thingId: string): Promise<{
 
 async function publishSubscriptionLifecycle(
   subscription: SubscriptionRecordBase,
-  eventType:
-    | 'subscription_requested'
-    | 'subscription_started'
-    | 'subscription_failed'
-    | 'subscription_stopped',
-  detail?: string
+  eventType: 'subscription_requested' | 'subscription_started' | 'subscription_failed' | 'subscription_stopped',
+  detail?: string,
 ): Promise<void> {
   await publishRuntimeStreamEvent({
     eventType,
@@ -214,7 +187,7 @@ async function publishSubscriptionLifecycle(
 async function publishInteractionUpdate(
   subscription: SubscriptionRecordBase,
   output: any,
-  eventType: 'property_observed' | 'event_received'
+  eventType: 'property_observed' | 'event_received',
 ): Promise<void> {
   const payload = await encodeInteractionOutputPayload(output);
   await publishRuntimeStreamEvent({
@@ -254,15 +227,13 @@ function buildSubscriptionHandle(subscription: SubscriptionRecordBase): {
   };
 }
 
-function getSubscriptionSetupState(
-  subscription: SubscriptionRecord
-): SubscriptionSetupState {
+function getSubscriptionSetupState(subscription: SubscriptionRecord): SubscriptionSetupState {
   return subscription.status;
 }
 
 function buildEnsureSubscriptionResponse(
   subscription: SubscriptionRecord,
-  created: boolean
+  created: boolean,
 ): {
   subscription: ReturnType<typeof buildSubscriptionHandle>;
   created: boolean;
@@ -278,7 +249,7 @@ function buildEnsureSubscriptionResponse(
 function getExistingSubscription(
   request: any,
   operationName: OperationName,
-  extraData?: unknown
+  extraData?: unknown,
 ): SubscriptionRecord | undefined {
   const key = buildSubscriptionKey(request, operationName, extraData);
   const existingId = subscriptionsByKey.get(key);
@@ -306,39 +277,24 @@ function forgetSubscription(subscriptionId: string): SubscriptionRecord | undefi
   return subscription;
 }
 
-async function startPropertyObservation(
-  pending: PendingSubscription,
-  request: any
-): Promise<void> {
+async function startPropertyObservation(pending: PendingSubscription, request: any): Promise<void> {
   try {
     const { thing, document } = await consumeThing(pending.thingId);
-    const propertyDefinition = getAffordanceDefinition(
-      document,
-      pending.name,
-      'observeproperty'
-    );
+    const propertyDefinition = getAffordanceDefinition(document, pending.name, 'observeproperty');
     if (!propertyDefinition) {
-      throw createRuntimeError(
-        'not_found',
-        `Thing '${pending.thingId}' does not define property '${pending.name}'`
-      );
+      throw createRuntimeError('not_found', `Thing '${pending.thingId}' does not define property '${pending.name}'`);
     }
 
     if (!isObservablePropertyDefinition(propertyDefinition)) {
       throw createRuntimeError(
         'failed_precondition',
-        `Thing '${pending.thingId}' property '${pending.name}' is not observable`
+        `Thing '${pending.thingId}' property '${pending.name}' is not observable`,
       );
     }
 
     const resolvedFormIndex = (() => {
       try {
-        return resolveFormIndex(
-          document,
-          pending.name,
-          'observeproperty',
-          request?.formSelector
-        );
+        return resolveFormIndex(document, pending.name, 'observeproperty', request?.formSelector);
       } catch (error) {
         throw createRuntimeError('invalid_argument', formatError(error));
       }
@@ -347,31 +303,23 @@ async function startPropertyObservation(
     const options = buildInteractionOptions(request, resolvedFormIndex);
     const subscription = ensureRuntimeSubscription(
       await withOptionalTimeout(
-      thing.observeProperty(
-        pending.name,
-        (output: any) => {
-          void publishInteractionUpdate(
-            pending,
-            output,
-            'property_observed'
-          ).catch((error) => {
-            const message = formatError(error);
-            log.error(`Failed to publish property observation: ${message}`);
-          });
-        },
-        (error: unknown) => {
-          void publishSubscriptionLifecycle(
-            pending,
-            'subscription_failed',
-            formatError(error)
-          );
-        },
-        options
+        thing.observeProperty(
+          pending.name,
+          (output: any) => {
+            void publishInteractionUpdate(pending, output, 'property_observed').catch((error) => {
+              const message = formatError(error);
+              log.error(`Failed to publish property observation: ${message}`);
+            });
+          },
+          (error: unknown) => {
+            void publishSubscriptionLifecycle(pending, 'subscription_failed', formatError(error));
+          },
+          options,
+        ),
+        config.subscriptionSetupTimeoutMs,
+        `Timed out while observing property '${pending.name}' on Thing '${pending.thingId}'`,
       ),
-      config.subscriptionSetupTimeoutMs,
-      `Timed out while observing property '${pending.name}' on Thing '${pending.thingId}'`
-      ),
-      `Observation for property '${pending.name}' on Thing '${pending.thingId}' did not return a stoppable subscription`
+      `Observation for property '${pending.name}' on Thing '${pending.thingId}' did not return a stoppable subscription`,
     );
 
     const current = subscriptionsById.get(pending.subscriptionId);
@@ -402,78 +350,50 @@ async function startPropertyObservation(
 
     const message = formatError(error);
     log.warn(`Failed to start property observation: ${message}`);
-    await publishSubscriptionLifecycle(
-      pending,
-      'subscription_failed',
-      message
-    ).catch(() => undefined);
+    await publishSubscriptionLifecycle(pending, 'subscription_failed', message).catch(() => undefined);
   }
 }
 
 async function startEventSubscription(
   pending: PendingSubscription,
   request: any,
-  subscriptionInput: unknown
+  subscriptionInput: unknown,
 ): Promise<void> {
   try {
     const { thing, document } = await consumeThing(pending.thingId);
-    const eventDefinition = getAffordanceDefinition(
-      document,
-      pending.name,
-      'subscribeevent'
-    );
+    const eventDefinition = getAffordanceDefinition(document, pending.name, 'subscribeevent');
     if (!eventDefinition) {
-      throw createRuntimeError(
-        'not_found',
-        `Thing '${pending.thingId}' does not define event '${pending.name}'`
-      );
+      throw createRuntimeError('not_found', `Thing '${pending.thingId}' does not define event '${pending.name}'`);
     }
 
     const resolvedFormIndex = (() => {
       try {
-        return resolveFormIndex(
-          document,
-          pending.name,
-          'subscribeevent',
-          request?.formSelector
-        );
+        return resolveFormIndex(document, pending.name, 'subscribeevent', request?.formSelector);
       } catch (error) {
         throw createRuntimeError('invalid_argument', formatError(error));
       }
     })();
 
-    const options = buildInteractionOptions(
-      request,
-      resolvedFormIndex,
-      subscriptionInput
-    );
+    const options = buildInteractionOptions(request, resolvedFormIndex, subscriptionInput);
     const subscription = ensureRuntimeSubscription(
       await withOptionalTimeout(
-      thing.subscribeEvent(
-        pending.name,
-        (output: any) => {
-          void publishInteractionUpdate(
-            pending,
-            output,
-            'event_received'
-          ).catch((error) => {
-            const message = formatError(error);
-            log.error(`Failed to publish event subscription data: ${message}`);
-          });
-        },
-        (error: unknown) => {
-          void publishSubscriptionLifecycle(
-            pending,
-            'subscription_failed',
-            formatError(error)
-          );
-        },
-        options
+        thing.subscribeEvent(
+          pending.name,
+          (output: any) => {
+            void publishInteractionUpdate(pending, output, 'event_received').catch((error) => {
+              const message = formatError(error);
+              log.error(`Failed to publish event subscription data: ${message}`);
+            });
+          },
+          (error: unknown) => {
+            void publishSubscriptionLifecycle(pending, 'subscription_failed', formatError(error));
+          },
+          options,
+        ),
+        config.subscriptionSetupTimeoutMs,
+        `Timed out while subscribing to event '${pending.name}' on Thing '${pending.thingId}'`,
       ),
-      config.subscriptionSetupTimeoutMs,
-      `Timed out while subscribing to event '${pending.name}' on Thing '${pending.thingId}'`
-      ),
-      `Event subscription for '${pending.name}' on Thing '${pending.thingId}' did not return a stoppable subscription`
+      `Event subscription for '${pending.name}' on Thing '${pending.thingId}' did not return a stoppable subscription`,
     );
 
     const current = subscriptionsById.get(pending.subscriptionId);
@@ -504,11 +424,7 @@ async function startEventSubscription(
 
     const message = formatError(error);
     log.warn(`Failed to start event subscription: ${message}`);
-    await publishSubscriptionLifecycle(
-      pending,
-      'subscription_failed',
-      message
-    ).catch(() => undefined);
+    await publishSubscriptionLifecycle(pending, 'subscription_failed', message).catch(() => undefined);
   }
 }
 
@@ -520,10 +436,7 @@ export async function ensurePropertyObservation(request: any): Promise<any> {
     throw createRuntimeError('invalid_argument', 'thing_id is required');
   }
   if (!propertyName) {
-    throw createRuntimeError(
-      'invalid_argument',
-      'target.affordance_name is required for EnsurePropertyObservation'
-    );
+    throw createRuntimeError('invalid_argument', 'target.affordance_name is required for EnsurePropertyObservation');
   }
 
   const existing = getExistingSubscription(request, 'observeproperty');
@@ -544,9 +457,7 @@ export async function ensurePropertyObservation(request: any): Promise<any> {
   };
 
   rememberSubscription(pending);
-  void publishSubscriptionLifecycle(pending, 'subscription_requested').catch(
-    () => undefined
-  );
+  void publishSubscriptionLifecycle(pending, 'subscription_requested').catch(() => undefined);
   void startPropertyObservation(pending, request);
 
   return buildEnsureSubscriptionResponse(pending, true);
@@ -560,18 +471,11 @@ export async function ensureEventSubscription(request: any): Promise<any> {
     throw createRuntimeError('invalid_argument', 'thing_id is required');
   }
   if (!eventName) {
-    throw createRuntimeError(
-      'invalid_argument',
-      'target.affordance_name is required for EnsureEventSubscription'
-    );
+    throw createRuntimeError('invalid_argument', 'target.affordance_name is required for EnsureEventSubscription');
   }
 
   const subscriptionInput = decodePayloadEnvelope(request?.subscriptionInput);
-  const existing = getExistingSubscription(
-    request,
-    'subscribeevent',
-    subscriptionInput
-  );
+  const existing = getExistingSubscription(request, 'subscribeevent', subscriptionInput);
   if (existing) {
     return buildEnsureSubscriptionResponse(existing, false);
   }
@@ -589,9 +493,7 @@ export async function ensureEventSubscription(request: any): Promise<any> {
   };
 
   rememberSubscription(pending);
-  void publishSubscriptionLifecycle(pending, 'subscription_requested').catch(
-    () => undefined
-  );
+  void publishSubscriptionLifecycle(pending, 'subscription_requested').catch(() => undefined);
   void startEventSubscription(pending, request, subscriptionInput);
 
   return buildEnsureSubscriptionResponse(pending, true);
@@ -600,10 +502,7 @@ export async function ensureEventSubscription(request: any): Promise<any> {
 export async function removeSubscription(request: any): Promise<any> {
   const subscriptionId = String(request?.subscriptionId || '').trim();
   if (!subscriptionId) {
-    throw createRuntimeError(
-      'invalid_argument',
-      'subscription_id is required for RemoveSubscription'
-    );
+    throw createRuntimeError('invalid_argument', 'subscription_id is required for RemoveSubscription');
   }
 
   const subscription = forgetSubscription(subscriptionId);
@@ -617,8 +516,7 @@ export async function removeSubscription(request: any): Promise<any> {
   }
 
   const cancellationInput = decodePayloadEnvelope(request?.cancellationInput);
-  const options =
-    cancellationInput === undefined ? undefined : { data: cancellationInput };
+  const options = cancellationInput === undefined ? undefined : { data: cancellationInput };
 
   try {
     await subscription.subscription.stop(options);
@@ -643,10 +541,7 @@ export async function stopAllSubscriptions(): Promise<void> {
       }
 
       await subscription.subscription.stop().catch(() => undefined);
-      await publishSubscriptionLifecycle(
-        subscription,
-        'subscription_stopped'
-      ).catch(() => undefined);
-    })
+      await publishSubscriptionLifecycle(subscription, 'subscription_stopped').catch(() => undefined);
+    }),
   );
 }

@@ -52,9 +52,9 @@ test('resolveRuntimeCredentials prefers security-name matches', () => {
           [RUNTIME_SECURITY_NAME_FIELD]: 'token_sc',
         },
       ],
-      [secrets]
+      [secrets],
     ),
-    { token: 'demo-token' }
+    { token: 'demo-token' },
   );
 });
 
@@ -79,13 +79,10 @@ test('resolveRuntimeCredentials falls back to an unambiguous scheme match', () =
     ],
   };
 
-  assert.deepEqual(
-    resolveRuntimeCredentials([{ scheme: 'basic' }], secrets),
-    {
-      username: 'demo-user',
-      password: 'demo-pass',
-    }
-  );
+  assert.deepEqual(resolveRuntimeCredentials([{ scheme: 'basic' }], secrets), {
+    username: 'demo-user',
+    password: 'demo-pass',
+  });
 });
 
 test('resolveRuntimeCredentials rejects ambiguous scheme-only matches', () => {
@@ -112,7 +109,7 @@ test('resolveRuntimeCredentials rejects ambiguous scheme-only matches', () => {
 
   assert.throws(
     () => resolveRuntimeCredentials([{ scheme: 'basic' }], secrets),
-    /Multiple credentials match security scheme 'basic'/
+    /Multiple credentials match security scheme 'basic'/,
   );
 });
 

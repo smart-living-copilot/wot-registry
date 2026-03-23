@@ -6,21 +6,9 @@ import {
   handleReadProperty,
   handleWriteProperty,
 } from '../runtime/operations.js';
-import {
-  formatError,
-  getRuntimeErrorCode,
-  getRuntimeErrorStatus,
-} from '../services/errors.js';
-import {
-  decodePayloadEnvelope,
-  encodePayloadEnvelope,
-  normalizeBody,
-} from '../services/payloads.js';
-import {
-  ensureEventSubscription,
-  ensurePropertyObservation,
-  removeSubscription,
-} from '../services/subscriptions.js';
+import { formatError, getRuntimeErrorCode, getRuntimeErrorStatus } from '../services/errors.js';
+import { decodePayloadEnvelope, encodePayloadEnvelope, normalizeBody } from '../services/payloads.js';
+import { ensureEventSubscription, ensurePropertyObservation, removeSubscription } from '../services/subscriptions.js';
 
 type JsonRecord = Record<string, unknown>;
 
@@ -28,11 +16,7 @@ function isPlainObject(value: unknown): value is JsonRecord {
   return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
 }
 
-function getStringField(
-  body: JsonRecord,
-  camelKey: string,
-  snakeKey: string
-): string {
+function getStringField(body: JsonRecord, camelKey: string, snakeKey: string): string {
   const direct = body[camelKey];
   if (typeof direct === 'string' && direct.trim()) {
     return direct.trim();
@@ -46,20 +30,12 @@ function getStringField(
   return '';
 }
 
-function getOptionalStringField(
-  body: JsonRecord,
-  camelKey: string,
-  snakeKey: string
-): string | undefined {
+function getOptionalStringField(body: JsonRecord, camelKey: string, snakeKey: string): string | undefined {
   const value = getStringField(body, camelKey, snakeKey);
   return value || undefined;
 }
 
-function getOptionalIntegerField(
-  body: JsonRecord,
-  camelKey: string,
-  snakeKey: string
-): number | undefined {
+function getOptionalIntegerField(body: JsonRecord, camelKey: string, snakeKey: string): number | undefined {
   const candidates = [body[camelKey], body[snakeKey]];
   for (const value of candidates) {
     if (typeof value === 'number' && Number.isInteger(value)) {
@@ -78,21 +54,9 @@ function buildFormSelector(body: JsonRecord): JsonRecord | undefined {
   }
 
   const href = getOptionalStringField(body, 'href', 'href');
-  const preferredScheme = getOptionalStringField(
-    body,
-    'preferredScheme',
-    'preferred_scheme'
-  );
-  const preferredContentType = getOptionalStringField(
-    body,
-    'preferredContentType',
-    'preferred_content_type'
-  );
-  const preferredSubprotocol = getOptionalStringField(
-    body,
-    'preferredSubprotocol',
-    'preferred_subprotocol'
-  );
+  const preferredScheme = getOptionalStringField(body, 'preferredScheme', 'preferred_scheme');
+  const preferredContentType = getOptionalStringField(body, 'preferredContentType', 'preferred_content_type');
+  const preferredSubprotocol = getOptionalStringField(body, 'preferredSubprotocol', 'preferred_subprotocol');
 
   if (href) {
     formSelector.href = href;
@@ -134,12 +98,10 @@ function buildPayloadEnvelope(
   snakeContentTypeKey: string,
   options?: {
     allowNull?: boolean;
-  }
+  },
 ): JsonRecord | undefined {
   const base64Value = getOptionalStringField(body, base64Key, snakeBase64Key);
-  const contentType =
-    getOptionalStringField(body, contentTypeKey, snakeContentTypeKey) ||
-    undefined;
+  const contentType = getOptionalStringField(body, contentTypeKey, snakeContentTypeKey) || undefined;
 
   if (base64Value) {
     return encodePayloadEnvelope(Buffer.from(base64Value, 'base64'), contentType);
@@ -156,11 +118,7 @@ function buildPayloadEnvelope(
   return encodePayloadEnvelope(value, contentType);
 }
 
-function buildTarget(
-  thingId: string,
-  affordanceName: string,
-  operation: string
-): JsonRecord {
+function buildTarget(thingId: string, affordanceName: string, operation: string): JsonRecord {
   return {
     thingId,
     affordanceName,
@@ -182,10 +140,7 @@ function serializePayloadEnvelope(payload: any): JsonRecord {
     };
   }
 
-  if (
-    isPlainObject(decoded) &&
-    decoded.kind === 'content_ref'
-  ) {
+  if (isPlainObject(decoded) && decoded.kind === 'content_ref') {
     return {
       kind: 'content_ref',
       content_type: contentType,
@@ -242,11 +197,7 @@ export function createRuntimeRouter(): Router {
         getStringField(body, 'affordanceName', 'affordance_name');
 
       const result = await handleReadProperty({
-        target: buildTarget(
-          thingId,
-          propertyName,
-          'OPERATION_TYPE_READ_PROPERTY'
-        ),
+        target: buildTarget(thingId, propertyName, 'OPERATION_TYPE_READ_PROPERTY'),
         uriVariables: buildUriVariables(body),
         formSelector: buildFormSelector(body),
       });
@@ -270,11 +221,7 @@ export function createRuntimeRouter(): Router {
         getStringField(body, 'affordanceName', 'affordance_name');
 
       const result = await handleWriteProperty({
-        target: buildTarget(
-          thingId,
-          propertyName,
-          'OPERATION_TYPE_WRITE_PROPERTY'
-        ),
+        target: buildTarget(thingId, propertyName, 'OPERATION_TYPE_WRITE_PROPERTY'),
         input: buildPayloadEnvelope(
           body,
           'value',
@@ -283,7 +230,7 @@ export function createRuntimeRouter(): Router {
           'value',
           'value_base64',
           'value_content_type',
-          { allowNull: true }
+          { allowNull: true },
         ),
         uriVariables: buildUriVariables(body),
         formSelector: buildFormSelector(body),
@@ -304,15 +251,10 @@ export function createRuntimeRouter(): Router {
     try {
       const thingId = getStringField(body, 'thingId', 'thing_id');
       const actionName =
-        getStringField(body, 'actionName', 'action_name') ||
-        getStringField(body, 'affordanceName', 'affordance_name');
+        getStringField(body, 'actionName', 'action_name') || getStringField(body, 'affordanceName', 'affordance_name');
 
       const result = await handleInvokeAction({
-        target: buildTarget(
-          thingId,
-          actionName,
-          'OPERATION_TYPE_INVOKE_ACTION'
-        ),
+        target: buildTarget(thingId, actionName, 'OPERATION_TYPE_INVOKE_ACTION'),
         input: buildPayloadEnvelope(
           body,
           'input',
@@ -320,12 +262,11 @@ export function createRuntimeRouter(): Router {
           'inputContentType',
           'input',
           'input_base64',
-          'input_content_type'
+          'input_content_type',
         ),
         uriVariables: buildUriVariables(body),
         formSelector: buildFormSelector(body),
-        idempotencyKey:
-          getOptionalStringField(body, 'idempotencyKey', 'idempotency_key') || '',
+        idempotencyKey: getOptionalStringField(body, 'idempotencyKey', 'idempotency_key') || '',
       });
 
       if (result?.completedResult) {
@@ -359,14 +300,10 @@ export function createRuntimeRouter(): Router {
 
       response.json(
         await ensurePropertyObservation({
-          target: buildTarget(
-            thingId,
-            propertyName,
-            'OPERATION_TYPE_OBSERVE_PROPERTY'
-          ),
+          target: buildTarget(thingId, propertyName, 'OPERATION_TYPE_OBSERVE_PROPERTY'),
           uriVariables: buildUriVariables(body),
           formSelector: buildFormSelector(body),
-        })
+        }),
       );
     } catch (error) {
       sendError(response, error);
@@ -378,16 +315,11 @@ export function createRuntimeRouter(): Router {
     try {
       const thingId = getStringField(body, 'thingId', 'thing_id');
       const eventName =
-        getStringField(body, 'eventName', 'event_name') ||
-        getStringField(body, 'affordanceName', 'affordance_name');
+        getStringField(body, 'eventName', 'event_name') || getStringField(body, 'affordanceName', 'affordance_name');
 
       response.json(
         await ensureEventSubscription({
-          target: buildTarget(
-            thingId,
-            eventName,
-            'OPERATION_TYPE_SUBSCRIBE_EVENT'
-          ),
+          target: buildTarget(thingId, eventName, 'OPERATION_TYPE_SUBSCRIBE_EVENT'),
           uriVariables: buildUriVariables(body),
           subscriptionInput: buildPayloadEnvelope(
             body,
@@ -396,10 +328,10 @@ export function createRuntimeRouter(): Router {
             'subscriptionInputContentType',
             'subscription_input',
             'subscription_input_base64',
-            'subscription_input_content_type'
+            'subscription_input_content_type',
           ),
           formSelector: buildFormSelector(body),
-        })
+        }),
       );
     } catch (error) {
       sendError(response, error);
@@ -411,11 +343,7 @@ export function createRuntimeRouter(): Router {
     try {
       response.json(
         await removeSubscription({
-          subscriptionId: getStringField(
-            body,
-            'subscriptionId',
-            'subscription_id'
-          ),
+          subscriptionId: getStringField(body, 'subscriptionId', 'subscription_id'),
           cancellationInput: buildPayloadEnvelope(
             body,
             'cancellationInput',
@@ -423,9 +351,9 @@ export function createRuntimeRouter(): Router {
             'cancellationInputContentType',
             'cancellation_input',
             'cancellation_input_base64',
-            'cancellation_input_content_type'
+            'cancellation_input_content_type',
           ),
-        })
+        }),
       );
     } catch (error) {
       sendError(response, error);

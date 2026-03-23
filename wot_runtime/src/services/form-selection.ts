@@ -40,9 +40,7 @@ function normalizeStringArray(value: unknown): string[] {
     return [];
   }
 
-  return value
-    .map((item) => cleanString(item).toLowerCase())
-    .filter((item) => item.length > 0);
+  return value.map((item) => cleanString(item).toLowerCase()).filter((item) => item.length > 0);
 }
 
 function extractScheme(href: string): string {
@@ -107,7 +105,7 @@ function thingIdFromDocument(document: ThingDescription): string {
 export function getAffordanceDefinition(
   document: ThingDescription,
   affordanceName: string,
-  operation: AffordanceOperation
+  operation: AffordanceOperation,
 ): JsonRecord | null {
   const section = document[operationSection(operation)];
   if (!isPlainObject(section)) {
@@ -121,7 +119,7 @@ export function getAffordanceDefinition(
 function getAffordanceForms(
   document: ThingDescription,
   affordanceName: string,
-  operation: AffordanceOperation
+  operation: AffordanceOperation,
 ): JsonRecord[] {
   const affordance = getAffordanceDefinition(document, affordanceName, operation);
   if (!affordance || !Array.isArray(affordance.forms)) {
@@ -140,7 +138,7 @@ function formMatchesSelector(
   form: JsonRecord,
   formIndex: number,
   selector: NormalizedFormSelector,
-  operation: AffordanceOperation
+  operation: AffordanceOperation,
 ): boolean {
   if (selector.formIndex !== undefined && selector.formIndex !== formIndex) {
     return false;
@@ -182,7 +180,7 @@ export function resolveFormIndex(
   document: ThingDescription,
   affordanceName: string,
   operation: AffordanceOperation,
-  formSelector: unknown
+  formSelector: unknown,
 ): number | undefined {
   const selector = normalizeFormSelector(formSelector);
   if (!selector) {
@@ -190,9 +188,7 @@ export function resolveFormIndex(
   }
 
   const forms = getAffordanceForms(document, affordanceName, operation);
-  const matchedIndex = forms.findIndex((form, index) =>
-    formMatchesSelector(form, index, selector, operation)
-  );
+  const matchedIndex = forms.findIndex((form, index) => formMatchesSelector(form, index, selector, operation));
 
   if (matchedIndex >= 0) {
     return matchedIndex;
@@ -200,6 +196,6 @@ export function resolveFormIndex(
 
   const thingId = thingIdFromDocument(document);
   throw new Error(
-    `No form matched the requested selector for '${operation}' on Thing '${thingId}' affordance '${affordanceName}'`
+    `No form matched the requested selector for '${operation}' on Thing '${thingId}' affordance '${affordanceName}'`,
   );
 }

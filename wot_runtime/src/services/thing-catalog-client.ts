@@ -33,10 +33,7 @@ function extractThingDocument(payload: ThingDescription): ThingDescription {
   return payload;
 }
 
-export function extractRegistryErrorMessage(
-  error: unknown,
-  fallback: string
-): string {
+export function extractRegistryErrorMessage(error: unknown, fallback: string): string {
   if (error instanceof AxiosError) {
     const payload = error.response?.data;
     if (payload && typeof payload === 'object') {
@@ -61,13 +58,10 @@ export async function fetchThingDescription(thingId: string): Promise<{
   const encodedId = encodeURIComponent(thingId);
 
   try {
-    const response = await axios.get<ThingDescription>(
-      thingsUrl(encodedId),
-      {
-        headers: registryServiceHeaders(),
-        timeout: config.requestTimeoutMs,
-      }
-    );
+    const response = await axios.get<ThingDescription>(thingsUrl(encodedId), {
+      headers: registryServiceHeaders(),
+      timeout: config.requestTimeoutMs,
+    });
 
     const document = extractThingDocument(response.data);
     const serialized = JSON.stringify(document);
@@ -75,12 +69,7 @@ export async function fetchThingDescription(thingId: string): Promise<{
 
     return { document, hash };
   } catch (error) {
-    throw new Error(
-      extractRegistryErrorMessage(
-        error,
-        `Failed to fetch Thing Description '${thingId}'`
-      )
-    );
+    throw new Error(extractRegistryErrorMessage(error, `Failed to fetch Thing Description '${thingId}'`));
   }
 }
 

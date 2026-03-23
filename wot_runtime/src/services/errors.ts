@@ -5,14 +5,8 @@
  * so `instanceof DataSchemaError` is unreliable.  We check the message and
  * the presence of a `.value` property instead.
  */
-export function isDataSchemaError(
-  error: unknown
-): error is Error & { value: unknown } {
-  return (
-    error instanceof Error &&
-    error.message === 'Invalid value according to DataSchema' &&
-    'value' in error
-  );
+export function isDataSchemaError(error: unknown): error is Error & { value: unknown } {
+  return error instanceof Error && error.message === 'Invalid value according to DataSchema' && 'value' in error;
 }
 
 export type RuntimeErrorCode =
@@ -60,10 +54,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
 }
 
-export function createRuntimeError(
-  code: RuntimeErrorCode,
-  message: string
-): RuntimeError {
+export function createRuntimeError(code: RuntimeErrorCode, message: string): RuntimeError {
   return new RuntimeError(code, message);
 }
 
@@ -75,9 +66,7 @@ export function getRuntimeErrorStatus(error: unknown): number {
   return isRuntimeError(error) ? error.status : 500;
 }
 
-export function getRuntimeErrorCode(
-  error: unknown
-): RuntimeErrorCode | 'unknown' {
+export function getRuntimeErrorCode(error: unknown): RuntimeErrorCode | 'unknown' {
   return isRuntimeError(error) ? error.code : 'unknown';
 }
 
@@ -91,22 +80,10 @@ export function formatError(error: unknown): string {
   }
 
   if (isRecord(error)) {
-    const details =
-      typeof error.details === 'string' && error.details.trim()
-        ? error.details.trim()
-        : null;
-    const message =
-      typeof error.message === 'string' && error.message.trim()
-        ? error.message.trim()
-        : null;
-    const name =
-      typeof error.name === 'string' && error.name.trim()
-        ? error.name.trim()
-        : null;
-    const code =
-      typeof error.code === 'number' || typeof error.code === 'string'
-        ? String(error.code)
-        : null;
+    const details = typeof error.details === 'string' && error.details.trim() ? error.details.trim() : null;
+    const message = typeof error.message === 'string' && error.message.trim() ? error.message.trim() : null;
+    const name = typeof error.name === 'string' && error.name.trim() ? error.name.trim() : null;
+    const code = typeof error.code === 'number' || typeof error.code === 'string' ? String(error.code) : null;
     const base = details || message;
 
     if (base) {
