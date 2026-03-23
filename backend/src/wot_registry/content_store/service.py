@@ -49,7 +49,9 @@ class ContentStoreService:
             payload,
             content_type=normalized_content_type,
             filename=filename,
-            ttl_seconds=ttl_seconds if ttl_seconds is not None else self._default_ttl_seconds,
+            ttl_seconds=ttl_seconds
+            if ttl_seconds is not None
+            else self._default_ttl_seconds,
             source=source,
             metadata=metadata,
             preview=preview,
@@ -71,7 +73,9 @@ class ContentStoreService:
             payload,
             content_type=(content_type or "application/octet-stream").strip(),
             filename=filename,
-            ttl_seconds=ttl_seconds if ttl_seconds is not None else self._default_ttl_seconds,
+            ttl_seconds=ttl_seconds
+            if ttl_seconds is not None
+            else self._default_ttl_seconds,
             source=source,
             metadata=metadata,
         )
@@ -83,7 +87,10 @@ class ContentStoreService:
         limit: int = 25,
         source: str | None = None,
     ) -> list[dict[str, Any]]:
-        return [self.serialize_entry(entry) for entry in list_entries(self._base, limit=limit, source=source)]
+        return [
+            self.serialize_entry(entry)
+            for entry in list_entries(self._base, limit=limit, source=source)
+        ]
 
     def get_entry(self, content_ref: str) -> dict[str, Any] | None:
         entry = get_entry(self._base, content_ref)

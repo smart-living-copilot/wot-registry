@@ -15,7 +15,10 @@ from wot_registry.database import get_session_factory
 from wot_registry.search import ThingSearchService, get_active_search_service
 from wot_registry.search.service import SearchQueryService
 from wot_registry.things import serialize_thing, validate_document
-from wot_registry.things.service import ThingCatalogQueryService, ThingCatalogWriteService
+from wot_registry.things.service import (
+    ThingCatalogQueryService,
+    ThingCatalogWriteService,
+)
 from wot_registry.wot_runtime_client import WotRuntimeClient
 
 

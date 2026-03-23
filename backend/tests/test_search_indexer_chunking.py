@@ -65,9 +65,18 @@ def test_build_affordance_chunk_text_action():
 def test_make_chunk_id_variants():
     assert make_chunk_id("urn:thing:1") == "urn:thing:1"
     assert make_chunk_id("urn:thing:1", "device") == "urn:thing:1"
-    assert make_chunk_id("urn:thing:1", "property", "temp") == "urn:thing:1::property::temp"
-    assert make_chunk_id("urn:thing:1", "action", "toggle") == "urn:thing:1::action::toggle"
-    assert make_chunk_id("urn:thing:1", "event", "overheated") == "urn:thing:1::event::overheated"
+    assert (
+        make_chunk_id("urn:thing:1", "property", "temp")
+        == "urn:thing:1::property::temp"
+    )
+    assert (
+        make_chunk_id("urn:thing:1", "action", "toggle")
+        == "urn:thing:1::action::toggle"
+    )
+    assert (
+        make_chunk_id("urn:thing:1", "event", "overheated")
+        == "urn:thing:1::event::overheated"
+    )
 
 
 def test_generate_all_chunks_counts():

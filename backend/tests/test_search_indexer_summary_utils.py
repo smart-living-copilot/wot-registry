@@ -1,4 +1,7 @@
-from wot_registry.search_indexer.summary_utils import compute_td_hash, extract_td_metadata
+from wot_registry.search_indexer.summary_utils import (
+    compute_td_hash,
+    extract_td_metadata,
+)
 
 
 def test_compute_td_hash_ignores_transport_fields():

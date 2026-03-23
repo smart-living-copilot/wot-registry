@@ -98,10 +98,18 @@ def stub_search_runtime(monkeypatch):
     async def fake_stop_search_indexer(app):
         app.state.search_indexer_consumer = None
 
-    monkeypatch.setattr("wot_registry.lifecycle.start_search_service", fake_start_search_service)
-    monkeypatch.setattr("wot_registry.lifecycle.stop_search_service", fake_stop_search_service)
-    monkeypatch.setattr("wot_registry.lifecycle.start_search_indexer", fake_start_search_indexer)
-    monkeypatch.setattr("wot_registry.lifecycle.stop_search_indexer", fake_stop_search_indexer)
+    monkeypatch.setattr(
+        "wot_registry.lifecycle.start_search_service", fake_start_search_service
+    )
+    monkeypatch.setattr(
+        "wot_registry.lifecycle.stop_search_service", fake_stop_search_service
+    )
+    monkeypatch.setattr(
+        "wot_registry.lifecycle.start_search_indexer", fake_start_search_indexer
+    )
+    monkeypatch.setattr(
+        "wot_registry.lifecycle.stop_search_indexer", fake_stop_search_indexer
+    )
     set_active_search_service(None)
     yield
     set_active_search_service(None)

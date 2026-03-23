@@ -181,7 +181,10 @@ class WotRuntimeClient:
                 data = await response.json(content_type=None)
                 if response.status >= 400:
                     detail = data.get("detail") if isinstance(data, dict) else None
-                    raise ValueError(detail or f"wot_runtime request failed with status {response.status}")
+                    raise ValueError(
+                        detail
+                        or f"wot_runtime request failed with status {response.status}"
+                    )
                 if not isinstance(data, dict):
                     raise ValueError("wot_runtime returned a non-object response")
                 return data

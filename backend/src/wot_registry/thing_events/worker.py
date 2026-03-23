@@ -5,7 +5,10 @@ from typing import Callable
 
 from sqlalchemy.orm import sessionmaker
 
-from wot_registry.thing_events.outbox import OUTBOX_BATCH_SIZE, publish_pending_thing_events
+from wot_registry.thing_events.outbox import (
+    OUTBOX_BATCH_SIZE,
+    publish_pending_thing_events,
+)
 from wot_registry.thing_events.publisher import ThingEventPublisher
 
 

@@ -85,11 +85,11 @@ def _preview_json_object(data: Any) -> str:
     if isinstance(data, list):
         sample = data[:2]
         sample_text = json.dumps(sample, ensure_ascii=False, default=str)
-        return _truncate_text(
-            f"Array with {len(data)} items. Sample: {sample_text}"
-        )
+        return _truncate_text(f"Array with {len(data)} items. Sample: {sample_text}")
 
-    return _truncate_text(f"JSON value: {json.dumps(data, ensure_ascii=False, default=str)}")
+    return _truncate_text(
+        f"JSON value: {json.dumps(data, ensure_ascii=False, default=str)}"
+    )
 
 
 def build_preview(payload: bytes, content_type: str) -> str:
@@ -103,7 +103,11 @@ def build_preview(payload: bytes, content_type: str) -> str:
         return _preview_json_object(decoded)
 
     if normalized.startswith("text/") or normalized in {"text/csv", "application/csv"}:
-        text = payload.decode("utf-8", errors="replace").replace("\r", " ").replace("\n", " ")
+        text = (
+            payload.decode("utf-8", errors="replace")
+            .replace("\r", " ")
+            .replace("\n", " ")
+        )
         return _truncate_text(text)
 
     if normalized.startswith("image/"):
@@ -137,7 +141,9 @@ def _deserialize_entry(payload: dict[str, Any]) -> ContentEntry:
         filename=str(payload["filename"]),
         created_at=_parse_datetime(payload.get("created_at")) or _utcnow(),
         expires_at=_parse_datetime(payload.get("expires_at")),
-        ttl_seconds=int(payload["ttl_seconds"]) if payload.get("ttl_seconds") is not None else None,
+        ttl_seconds=int(payload["ttl_seconds"])
+        if payload.get("ttl_seconds") is not None
+        else None,
         source=payload.get("source"),
         metadata=dict(payload.get("metadata") or {}),
         preview=str(payload.get("preview") or ""),
@@ -169,9 +175,7 @@ def store_payload(
 
     created_at = _utcnow()
     expires_at = (
-        created_at + timedelta(seconds=ttl_seconds)
-        if ttl_seconds is not None
-        else None
+        created_at + timedelta(seconds=ttl_seconds) if ttl_seconds is not None else None
     )
 
     entry = ContentEntry(
@@ -235,7 +239,9 @@ def get_blob_path(base: Path, content_ref: str) -> tuple[Path, ContentEntry] | N
     return path, entry
 
 
-def list_entries(base: Path, *, limit: int = 25, source: str | None = None) -> list[ContentEntry]:
+def list_entries(
+    base: Path, *, limit: int = 25, source: str | None = None
+) -> list[ContentEntry]:
     ensure_directories(base)
     entries: list[ContentEntry] = []
     for path in (base / ENTRIES_DIRNAME).glob("*.json"):

@@ -4,10 +4,15 @@ import signal
 import sys
 
 from wot_registry.config import get_settings
-from wot_registry.search_indexer.consumer import SearchIndexerStreamConsumer, SearchIndexerConsumerState
+from wot_registry.search_indexer.consumer import (
+    SearchIndexerStreamConsumer,
+    SearchIndexerConsumerState,
+)
 
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+)
 logger = logging.getLogger("search_indexer_consumer")
 
 

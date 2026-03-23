@@ -7,7 +7,13 @@ from wot_registry.models.things import ThingConflictError, ThingDocument, ThingR
 from wot_registry.thing_events.outbox import enqueue_thing_event
 from wot_registry.things.events import build_change_event, build_remove_event
 from wot_registry.things.presentation import serialize_thing
-from wot_registry.things.store import create_thing, delete_thing, get_thing, list_things, put_thing
+from wot_registry.things.store import (
+    create_thing,
+    delete_thing,
+    get_thing,
+    list_things,
+    put_thing,
+)
 
 
 class ThingCatalogQueryService:

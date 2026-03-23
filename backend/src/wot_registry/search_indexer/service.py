@@ -11,7 +11,10 @@ from wot_registry.search_indexer.embeddings import (
     create_openai_client,
 )
 from wot_registry.search_indexer.metadata import build_index_metadata
-from wot_registry.search_indexer.prompting import SUMMARY_PROMPT_VERSION, generate_summary
+from wot_registry.search_indexer.prompting import (
+    SUMMARY_PROMPT_VERSION,
+    generate_summary,
+)
 from wot_registry.search_indexer.store import SearchIndexDocument, SearchVectorStore
 from wot_registry.search_indexer.summary_utils import (
     ThingTDMetadata,
@@ -119,7 +122,9 @@ class SearchIndexerService:
             summary_source="llm",
             summary_model=self._settings.OPENAI_MODEL,
         )
-        chunks = generate_all_chunks(thing_td, td_metadata, summary.strip(), base_metadata)
+        chunks = generate_all_chunks(
+            thing_td, td_metadata, summary.strip(), base_metadata
+        )
         return PreparedIndexChunks(thing_id=thing_id, chunks=chunks)
 
     async def _upsert_index_chunks(self, prepared: PreparedIndexChunks) -> None:

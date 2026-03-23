@@ -120,7 +120,9 @@ def get_settings() -> Settings:
             5,
         ),
         CONTENT_STORE_DIR=os.getenv("CONTENT_STORE_DIR", "./data/content"),
-        CONTENT_STORE_DEFAULT_TTL_SECONDS=_int_env("CONTENT_STORE_DEFAULT_TTL_SECONDS", 3600),
+        CONTENT_STORE_DEFAULT_TTL_SECONDS=_int_env(
+            "CONTENT_STORE_DEFAULT_TTL_SECONDS", 3600
+        ),
         CONTENT_STORE_CLEANUP_INTERVAL_SECONDS=_int_env(
             "CONTENT_STORE_CLEANUP_INTERVAL_SECONDS",
             60,

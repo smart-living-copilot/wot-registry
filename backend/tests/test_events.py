@@ -22,7 +22,9 @@ def test_stream_publisher_writes_structured_event(monkeypatch) -> None:
             assert decode_responses is True
             return fake_client
 
-    monkeypatch.setattr("wot_registry.thing_events.publisher.redis.Redis", FakeRedisFactory)
+    monkeypatch.setattr(
+        "wot_registry.thing_events.publisher.redis.Redis", FakeRedisFactory
+    )
 
     publisher = ValkeyThingEventStreamPublisher("redis://valkey:6379", "thing_events")
     publisher.publish(

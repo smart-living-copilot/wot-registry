@@ -5,7 +5,10 @@ from fastapi import APIRouter, Body, Depends, Query
 
 from wot_registry.auth import User, require_scopes
 from wot_registry.routers import SessionDep
-from wot_registry.things.service import ThingCatalogQueryService, ThingCatalogWriteService
+from wot_registry.things.service import (
+    ThingCatalogQueryService,
+    ThingCatalogWriteService,
+)
 from wot_registry.things import serialize_thing, validate_document
 
 router = APIRouter(prefix="/api", tags=["things"])

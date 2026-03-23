@@ -18,6 +18,8 @@ SERVICE_SCOPES = {
         "content:write",
     ],
 }
+
+
 def _service_token_for(settings, service_name: str) -> str | None:
     if service_name == "wot_runtime":
         return settings.WOT_RUNTIME_REGISTRY_TOKEN
@@ -70,6 +72,8 @@ def get_api_key_user(request: Request) -> User | None:
         )
     finally:
         session.close()
+
+
 def get_current_user(request: Request) -> User | None:
     service_user = _get_service_user(request)
     if service_user is not None:

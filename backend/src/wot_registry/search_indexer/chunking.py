@@ -72,10 +72,12 @@ def generate_all_chunks(
 
     # Device chunk
     device_meta = {**base_metadata, "chunkType": "device"}
-    chunks.append((
-        make_chunk_id(td_metadata["id"]),
-        SearchIndexDocument(page_content=device_summary, metadata=device_meta),
-    ))
+    chunks.append(
+        (
+            make_chunk_id(td_metadata["id"]),
+            SearchIndexDocument(page_content=device_summary, metadata=device_meta),
+        )
+    )
 
     # Affordance chunks
     for aff_type, td_key in [
@@ -93,9 +95,11 @@ def generate_all_chunks(
             text = build_affordance_chunk_text(td_metadata, aff_type, name, defn)
             chunk_meta = {**base_metadata, "chunkType": aff_type}
             chunk_id = make_chunk_id(td_metadata["id"], aff_type, name)
-            chunks.append((
-                chunk_id,
-                SearchIndexDocument(page_content=text, metadata=chunk_meta),
-            ))
+            chunks.append(
+                (
+                    chunk_id,
+                    SearchIndexDocument(page_content=text, metadata=chunk_meta),
+                )
+            )
 
     return chunks

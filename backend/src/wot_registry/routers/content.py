@@ -3,7 +3,16 @@ from __future__ import annotations
 import json
 from typing import Any
 
-from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, Request, UploadFile
+from fastapi import (
+    APIRouter,
+    Depends,
+    File,
+    Form,
+    HTTPException,
+    Query,
+    Request,
+    UploadFile,
+)
 from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field
 
@@ -65,10 +74,14 @@ async def store_blob_content(
     try:
         metadata = json.loads(metadata_json)
     except json.JSONDecodeError as exc:
-        raise HTTPException(status_code=400, detail="metadata_json must be valid JSON") from exc
+        raise HTTPException(
+            status_code=400, detail="metadata_json must be valid JSON"
+        ) from exc
 
     if not isinstance(metadata, dict):
-        raise HTTPException(status_code=400, detail="metadata_json must decode to an object")
+        raise HTTPException(
+            status_code=400, detail="metadata_json must decode to an object"
+        )
 
     payload = await file.read()
     return service.store_blob(
