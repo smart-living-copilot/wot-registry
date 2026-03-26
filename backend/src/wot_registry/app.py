@@ -19,6 +19,7 @@ from wot_registry.routers.health import router as health_router
 from wot_registry.routers.me import router as me_router
 from wot_registry.routers.search import router as search_router
 from wot_registry.routers.things import router as things_router
+from wot_registry.routers.wot_operations import router as wot_operations_router
 
 MCP_SCOPE = "mcp"
 MCP_ADMIN_SCOPE = "keys:manage"
@@ -55,6 +56,7 @@ app.include_router(content_router)
 app.include_router(credentials_router)
 app.include_router(things_router)
 app.include_router(api_keys_router)
+app.include_router(wot_operations_router)
 app.mount("/mcp", mcp_http_app)
 
 
