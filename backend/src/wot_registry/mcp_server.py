@@ -328,6 +328,7 @@ async def wot_write_property(
     value: Any,
     value_content_type: str | None = None,
     value_base64: str | None = None,
+    value_url: str | None = None,
     uri_variables: dict[str, Any] | None = None,
     form_index: int | None = None,
 ) -> dict[str, Any]:
@@ -338,6 +339,7 @@ async def wot_write_property(
         value=value,
         value_content_type=value_content_type,
         value_base64=value_base64,
+        value_url=value_url,
         uri_variables=uri_variables,
         form_index=form_index,
     )
@@ -350,6 +352,7 @@ async def wot_invoke_action(
     input: Any = None,
     input_content_type: str | None = None,
     input_base64: str | None = None,
+    input_url: str | None = None,
     uri_variables: dict[str, Any] | None = None,
     form_index: int | None = None,
     idempotency_key: str | None = None,
@@ -361,6 +364,7 @@ async def wot_invoke_action(
         input=input,
         input_content_type=input_content_type,
         input_base64=input_base64,
+        input_url=input_url,
         uri_variables=uri_variables,
         form_index=form_index,
         idempotency_key=idempotency_key,
@@ -390,6 +394,7 @@ async def wot_subscribe_event(
     subscription_input: Any = None,
     subscription_input_content_type: str | None = None,
     subscription_input_base64: str | None = None,
+    subscription_input_url: str | None = None,
     uri_variables: dict[str, Any] | None = None,
     form_index: int | None = None,
 ) -> dict[str, Any]:
@@ -400,6 +405,7 @@ async def wot_subscribe_event(
         subscription_input=subscription_input,
         subscription_input_content_type=subscription_input_content_type,
         subscription_input_base64=subscription_input_base64,
+        subscription_input_url=subscription_input_url,
         uri_variables=uri_variables,
         form_index=form_index,
     )
