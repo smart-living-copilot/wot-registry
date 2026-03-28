@@ -219,15 +219,6 @@ function serializePayloadEnvelope(payload: any): JsonRecord {
     };
   }
 
-  if (isPlainObject(decoded) && decoded.kind === 'content_ref') {
-    return {
-      kind: 'content_ref',
-      content_type: contentType,
-      size_bytes: body.length,
-      ...decoded,
-    };
-  }
-
   return {
     kind: 'inline',
     content_type: contentType,

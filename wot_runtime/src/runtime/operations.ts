@@ -1,9 +1,7 @@
 import log from '../logger/index.js';
 import { annotateThingDescriptionSecurityNames } from '../runtime/credentials.js';
 import { getWotClient } from '../runtime/servient.js';
-import { config } from '../config/env.js';
 import { buildCacheKey, getCached, setCached } from '../services/cache.js';
-import { type ContentStoreEntry, fetchContentBlob, storeContentBlob } from '../services/content-store-client.js';
 import { fetchThingDescription, type ThingDescription } from '../services/thing-catalog-client.js';
 import {
   decodePayloadEnvelope,
@@ -15,67 +13,6 @@ import { createRuntimeError, formatError } from '../services/errors.js';
 import { getAffordanceDefinition, resolveFormIndex } from '../services/form-selection.js';
 import { getRuntimeHealth } from '../services/runtime-health.js';
 
-/**
- * Supported interaction operations for metrics and logging.
- */
-type InteractionOperation = 'read_property' | 'invoke_action';
-
-/**
- * Internal representation of an interaction payload after encoding.
- */
-type EncodedInteractionPayload = {
-  body: Buffer;
-  contentType: string;
-  sourceProtocol: string;
-};
-
-/**
- * Media type used for payloads that reference external content (offloaded).
- */
-const CONTENT_REF_MEDIA_TYPE = 'application/vnd.wot.content-ref+json';
-
-/**
- * Checks if a payload is a content reference (referencing an offloaded blob).
- */
-function isContentRefPayload(payload: any): boolean {
-  if (!payload) return false;
-  const ct = String(payload.contentType || '')
-    .trim()
-    .toLowerCase();
-  return ct === CONTENT_REF_MEDIA_TYPE;
-}
-
-/**
- * Resolves a content reference input by fetching the actual blob from the content store.
- * Used when an action input or property write is too large to be sent inline.
- *
- * @param payload The content reference payload.
- * @returns The resolved payload { body: Buffer, contentType: string }.
- * @throws {RuntimeError} if the content reference is empty or invalid.
- */
-async function resolveContentRefInput(payload: any): Promise<any> {
-  const body = normalizeBody(payload.body);
-  if (body.length === 0) return payload;
-
-  let contentRef: string;
-  try {
-    const parsed = JSON.parse(body.toString('utf8'));
-    contentRef = typeof parsed === 'string' ? parsed : String(parsed);
-  } catch {
-    contentRef = body.toString('utf8').trim();
-  }
-
-  if (!contentRef) {
-    throw createRuntimeError('invalid_argument', 'Content reference is empty');
-  }
-
-  log.info(`Resolving content ref '${contentRef}' for action input`);
-  const resolved = await fetchContentBlob(contentRef);
-  return {
-    body: resolved.payload,
-    contentType: resolved.contentType,
-  };
-}
 
 /**
  * Checks if a value is a plain object.
@@ -167,102 +104,6 @@ function buildInteractionResponse(value: unknown, contentType?: string): { respo
   );
 }
 
-/**
- * Wraps a ContentStoreEntry into a content reference handle.
- */
-function buildContentRefHandle(entry: ContentStoreEntry): {
-  body: Buffer;
-  contentType: string;
-} {
-  const payload = encodePayloadEnvelope(
-    {
-      kind: 'content_ref',
-      content_ref: entry.content_ref,
-      content_type: entry.content_type,
-      size_bytes: entry.size_bytes,
-      digest: entry.digest,
-      filename: entry.filename,
-      created_at: entry.created_at,
-      expires_at: entry.expires_at,
-      ttl_seconds: entry.ttl_seconds,
-      source: entry.source,
-      metadata: entry.metadata,
-      preview: entry.preview,
-      detail_url: entry.detail_url,
-      download_url: entry.download_url,
-    },
-    CONTENT_REF_MEDIA_TYPE,
-  );
-
-  return {
-    body: normalizeBody(payload.body),
-    contentType: CONTENT_REF_MEDIA_TYPE,
-  };
-}
-
-/**
- * Builds an interaction response, automatically offloading the payload to the content store
- * if it exceeds the configured maximum inline size.
- *
- * @param payload The encoded interaction payload.
- * @param context Metadata about the interaction for tracking and cleanup.
- * @returns A standardized interaction response, potentially containing a content reference.
- */
-async function buildOffloadAwareInteractionResponse(
-  payload: EncodedInteractionPayload,
-  context: {
-    thingId: string;
-    affordanceName: string;
-    operation: InteractionOperation;
-    tdHash: string;
-  },
-): Promise<{ response: any }> {
-  if (payload.body.length <= config.inlinePayloadMaxBytes) {
-    return buildEncodedInteractionResponse(
-      {
-        body: payload.body,
-        contentType: payload.contentType,
-      },
-      payload.contentType,
-    );
-  }
-
-  const metadata: Record<string, unknown> = {
-    thing_id: context.thingId,
-    affordance_name: context.affordanceName,
-    operation: context.operation,
-    thing_description_hash: context.tdHash,
-    original_content_type: payload.contentType,
-    inline_threshold_bytes: config.inlinePayloadMaxBytes,
-  };
-
-  if (payload.sourceProtocol) {
-    metadata.source_protocol = payload.sourceProtocol;
-  }
-
-  try {
-    const entry = await storeContentBlob({
-      payload: payload.body,
-      contentType: payload.contentType,
-      ttlSeconds: config.offloadedPayloadTtlSeconds > 0 ? config.offloadedPayloadTtlSeconds : undefined,
-      source: `wot_runtime.${context.operation}`,
-      metadata,
-    });
-
-    return buildEncodedInteractionResponse(buildContentRefHandle(entry), CONTENT_REF_MEDIA_TYPE);
-  } catch (error) {
-    log.warn(
-      `Failed to offload oversized ${context.operation} output for '${context.thingId}/${context.affordanceName}', returning inline payload: ${formatError(error)}`,
-    );
-    return buildEncodedInteractionResponse(
-      {
-        body: payload.body,
-        contentType: payload.contentType,
-      },
-      payload.contentType,
-    );
-  }
-}
 
 /**
  * Fetches a Thing Description and consumes it via the node-wot servient.
@@ -344,12 +185,10 @@ export async function handleReadProperty(request: any): Promise<any> {
     },
   });
 
-  return buildOffloadAwareInteractionResponse(payload, {
-    thingId,
-    affordanceName: propertyName,
-    operation: 'read_property',
-    tdHash: hash,
-  });
+  return buildEncodedInteractionResponse(
+    { body: payload.body, contentType: payload.contentType },
+    payload.contentType,
+  );
 }
 
 /**
@@ -364,10 +203,7 @@ export async function handleWriteProperty(request: any): Promise<any> {
     throw createRuntimeError('invalid_argument', 'target.affordance_name is required for WriteProperty');
   }
 
-  const resolvedWriteInput = isContentRefPayload(request.input)
-    ? await resolveContentRefInput(request.input)
-    : request.input;
-  const input = decodePayloadEnvelope(resolvedWriteInput);
+  const input = decodePayloadEnvelope(request.input);
   if (input === undefined) {
     throw createRuntimeError('invalid_argument', 'input payload is required for WriteProperty');
   }
@@ -417,10 +253,7 @@ export async function handleInvokeAction(request: any): Promise<any> {
   })();
 
   const options = buildInteractionOptions(request, resolvedFormIndex) || {};
-  const resolvedInput = isContentRefPayload(request.input)
-    ? await resolveContentRefInput(request.input)
-    : request.input;
-  const input = decodePayloadEnvelope(resolvedInput);
+  const input = decodePayloadEnvelope(request.input);
   const actionDef = getAffordanceDefinition(document, actionName, 'invokeaction');
 
   if (isPlainObject(actionDef) && actionDef.synchronous === false) {
@@ -458,12 +291,10 @@ export async function handleInvokeAction(request: any): Promise<any> {
         log.warn(`Action '${actionName}' returned data that failed output schema validation, returning raw value`);
       },
     });
-    const interactionResponse = await buildOffloadAwareInteractionResponse(payload, {
-      thingId,
-      affordanceName: actionName,
-      operation: 'invoke_action',
-      tdHash: hash,
-    });
+    const interactionResponse = buildEncodedInteractionResponse(
+      { body: payload.body, contentType: payload.contentType },
+      payload.contentType,
+    );
 
     if (isCacheable) {
       await setCached(

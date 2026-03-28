@@ -10,7 +10,6 @@ from starlette.middleware import Middleware
 from starlette.middleware.cors import CORSMiddleware
 
 from wot_registry.config import get_settings
-from wot_registry.content_store import ContentStoreService
 from wot_registry.database import get_session_factory
 from wot_registry.search import ThingSearchService, get_active_search_service
 from wot_registry.search.service import SearchQueryService
@@ -36,10 +35,6 @@ def _tool_error(exc: HTTPException) -> ValueError:
     if isinstance(detail, str) and detail.strip():
         return ValueError(detail)
     return ValueError(f"Request failed with status {exc.status_code}")
-
-
-def _content_store() -> ContentStoreService:
-    return ContentStoreService(get_settings())
 
 
 def _wot_runtime_client() -> WotRuntimeClient:
@@ -279,24 +274,6 @@ def things_delete(thing_id: str) -> dict[str, str]:
         except HTTPException as exc:
             raise _tool_error(exc) from exc
     return {"id": thing_id, "status": "deleted"}
-
-
-@mcp.tool(name="content_list")
-def content_list(limit: int = 25, source: str | None = None) -> dict[str, Any]:
-    """List stored large-payload content references."""
-    service = _content_store()
-    return {
-        "items": service.list_entries(limit=limit, source=source),
-    }
-
-
-@mcp.tool(name="content_get")
-def content_get(content_ref: str) -> dict[str, Any]:
-    """Fetch metadata for one content reference."""
-    entry = _content_store().get_entry(content_ref)
-    if entry is None:
-        raise ValueError("Content reference not found")
-    return entry
 
 
 @mcp.tool(name="wot_get_runtime_health")

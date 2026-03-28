@@ -13,7 +13,6 @@ import wot_registry.models.credentials  # noqa: F401 — register table before i
 import wot_registry.models.outbox  # noqa: F401 — register table before init_db()
 
 from wot_registry.routers.api_keys import router as api_keys_router
-from wot_registry.routers.content import router as content_router
 from wot_registry.routers.credentials import router as credentials_router
 from wot_registry.routers.health import router as health_router
 from wot_registry.routers.me import router as me_router
@@ -52,7 +51,6 @@ app = FastAPI(
 app.include_router(health_router)
 app.include_router(me_router)
 app.include_router(search_router)
-app.include_router(content_router)
 app.include_router(credentials_router)
 app.include_router(things_router)
 app.include_router(api_keys_router)

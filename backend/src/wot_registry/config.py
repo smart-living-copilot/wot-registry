@@ -45,9 +45,6 @@ class Settings:
     WOT_RUNTIME_URL: str
     WOT_RUNTIME_TIMEOUT_SECONDS: int
     WOT_RUNTIME_SUBSCRIPTION_TIMEOUT_SECONDS: int
-    CONTENT_STORE_DIR: str
-    CONTENT_STORE_DEFAULT_TTL_SECONDS: int
-    CONTENT_STORE_CLEANUP_INTERVAL_SECONDS: int
     REGISTRY_PUBLIC_URL: str
 
     def validate_search_settings(self) -> None:
@@ -126,14 +123,6 @@ def get_settings() -> Settings:
         WOT_RUNTIME_SUBSCRIPTION_TIMEOUT_SECONDS=_int_env(
             "WOT_RUNTIME_SUBSCRIPTION_TIMEOUT_SECONDS",
             5,
-        ),
-        CONTENT_STORE_DIR=os.getenv("CONTENT_STORE_DIR", "./data/content"),
-        CONTENT_STORE_DEFAULT_TTL_SECONDS=_int_env(
-            "CONTENT_STORE_DEFAULT_TTL_SECONDS", 3600
-        ),
-        CONTENT_STORE_CLEANUP_INTERVAL_SECONDS=_int_env(
-            "CONTENT_STORE_CLEANUP_INTERVAL_SECONDS",
-            60,
         ),
         REGISTRY_PUBLIC_URL=os.getenv("REGISTRY_PUBLIC_URL", "http://localhost:8000"),
     )

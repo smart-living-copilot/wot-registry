@@ -6,11 +6,6 @@ from typing import Awaitable, Callable, Protocol
 from fastapi import FastAPI
 from sqlalchemy.orm import sessionmaker
 
-from wot_registry.content_store.cleanup import (
-    ContentStoreCleanupState,
-    start_content_store_cleanup,
-    stop_content_store_cleanup,
-)
 from wot_registry.config import Settings
 from wot_registry.bootstrap import BackendBootstrapService
 from wot_registry.search import ThingSearchService, set_active_search_service
@@ -45,8 +40,6 @@ def initialize_app_state(
     app.state.search_indexer_stop_event = asyncio.Event()
     app.state.search_indexer_consumer = None
     app.state.search_service = None
-    app.state.content_store_cleanup_state = ContentStoreCleanupState()
-    app.state.content_store_cleanup_stop_event = asyncio.Event()
 
 
 def bootstrap_persistent_state(
@@ -171,7 +164,6 @@ async def start_backend_runtime(
     bootstrap_persistent_state(session_factory=session_factory, settings=settings)
 
     try:
-        start_content_store_cleanup(app, settings=settings)
         start_thing_event_outbox(app, session_factory=session_factory)
         await start_search_indexer(app, settings=settings)
         start_search_service(app, settings=settings)
@@ -181,7 +173,6 @@ async def start_backend_runtime(
 
 
 async def shutdown_backend_runtime(app: FastAPI) -> None:
-    await stop_content_store_cleanup(app)
     await stop_search_service(app)
     await stop_thing_event_outbox(app)
     await stop_search_indexer(app)
