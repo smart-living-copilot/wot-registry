@@ -181,6 +181,8 @@ class WotRuntimeClient:
                 data = await response.json(content_type=None)
                 if response.status >= 400:
                     detail = data.get("detail") if isinstance(data, dict) else None
+                    if not detail and response.status == 413:
+                        detail = "Request payload too large"
                     raise ValueError(
                         detail
                         or f"wot_runtime request failed with status {response.status}"
