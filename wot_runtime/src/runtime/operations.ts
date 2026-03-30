@@ -163,7 +163,7 @@ export async function handleReadProperty(request: any): Promise<any> {
     throw createRuntimeError('invalid_argument', 'target.affordance_name is required for ReadProperty');
   }
 
-  const { thing, document, hash } = await consumeThing(request);
+  const { thing, document } = await consumeThing(request);
   if (!getAffordanceDefinition(document, propertyName, 'readproperty')) {
     throw createRuntimeError('not_found', `Thing '${thingId}' does not define property '${propertyName}'`);
   }
@@ -239,7 +239,7 @@ export async function handleInvokeAction(request: any): Promise<any> {
     throw createRuntimeError('invalid_argument', 'target.affordance_name is required for InvokeAction');
   }
 
-  const { thing, document, hash } = await consumeThing(request);
+  const { thing, document } = await consumeThing(request);
   if (!getAffordanceDefinition(document, actionName, 'invokeaction')) {
     throw createRuntimeError('not_found', `Thing '${thingId}' does not define action '${actionName}'`);
   }

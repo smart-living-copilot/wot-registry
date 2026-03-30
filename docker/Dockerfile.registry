@@ -16,10 +16,9 @@ RUN chmod +x /entrypoint.sh
 ENV REDIS_URL=redis://valkey:6379 \
     REGISTRY_DATABASE_URL=sqlite:////data/registry/wot_registry.db \
     REGISTRY_PUBLIC_URL=http://localhost:8000 \
-    CONTENT_STORE_DIR=/data/content \
     WOT_RUNTIME_STREAM=wot_runtime_events
 
-RUN mkdir -p /data/registry /data/content
+RUN mkdir -p /data/registry
 VOLUME ["/data"]
 
 EXPOSE 8000

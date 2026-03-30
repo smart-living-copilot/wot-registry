@@ -12,7 +12,6 @@ def root() -> dict[str, object]:
         "me": "/api/me",
         "things": "/api/things",
         "thing_search": "/api/things/search",
-        "content": "/api/content",
         "mcp": "/mcp",
     }
 

@@ -63,7 +63,6 @@ def clear_backend_state(tmp_path, monkeypatch):
     )
     monkeypatch.setenv("REDIS_URL", "redis://localhost:6379")
     monkeypatch.setenv("INIT_ADMIN_TOKEN", INIT_ADMIN_TOKEN)
-    monkeypatch.setenv("CONTENT_STORE_DIR", str(tmp_path / "content-store"))
     monkeypatch.setenv("REGISTRY_PUBLIC_URL", "http://testserver")
     monkeypatch.setenv("OPENAI_API_KEY", "test-openai-key")
     monkeypatch.setenv("OPENAI_MODEL", "gpt-test")

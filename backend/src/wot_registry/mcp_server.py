@@ -131,7 +131,6 @@ def _registry_health_payload() -> dict[str, Any]:
         "product": "wot_registry",
         "rest_base_url": settings.REGISTRY_PUBLIC_URL,
         "mcp_endpoint": f"{settings.REGISTRY_PUBLIC_URL.rstrip('/')}/mcp",
-        "content_endpoint": f"{settings.REGISTRY_PUBLIC_URL.rstrip('/')}/api/content",
         "transport": "streamable-http",
     }
 

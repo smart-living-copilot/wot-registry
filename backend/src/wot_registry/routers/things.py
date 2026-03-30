@@ -1,10 +1,9 @@
 from typing import Any
-from urllib.parse import unquote
 
 from fastapi import APIRouter, Body, Depends, Query
 
 from wot_registry.auth import User, require_scopes
-from wot_registry.routers import SessionDep
+from wot_registry.routers import SessionDep, decode_thing_id
 from wot_registry.things.service import (
     ThingCatalogQueryService,
     ThingCatalogWriteService,
@@ -12,10 +11,6 @@ from wot_registry.things.service import (
 from wot_registry.things import serialize_thing, validate_document
 
 router = APIRouter(prefix="/api", tags=["things"])
-
-
-def _decode_thing_id(thing_id: str) -> str:
-    return unquote(thing_id)
 
 
 # --- Affordance endpoints (must be registered before the catch-all {thing_id:path}) ---
@@ -28,7 +23,7 @@ def list_thing_properties(
     _user: User = Depends(require_scopes(["things:read"])),
 ) -> dict[str, Any]:
     return ThingCatalogQueryService(session).list_affordances(
-        _decode_thing_id(thing_id),
+        decode_thing_id(thing_id),
         "properties",
     )
 
@@ -41,7 +36,7 @@ def get_thing_property(
     _user: User = Depends(require_scopes(["things:read"])),
 ) -> dict[str, Any]:
     return ThingCatalogQueryService(session).get_affordance(
-        _decode_thing_id(thing_id),
+        decode_thing_id(thing_id),
         "properties",
         name,
     )
@@ -54,7 +49,7 @@ def list_thing_actions(
     _user: User = Depends(require_scopes(["things:read"])),
 ) -> dict[str, Any]:
     return ThingCatalogQueryService(session).list_affordances(
-        _decode_thing_id(thing_id),
+        decode_thing_id(thing_id),
         "actions",
     )
 
@@ -67,7 +62,7 @@ def get_thing_action(
     _user: User = Depends(require_scopes(["things:read"])),
 ) -> dict[str, Any]:
     return ThingCatalogQueryService(session).get_affordance(
-        _decode_thing_id(thing_id),
+        decode_thing_id(thing_id),
         "actions",
         name,
     )
@@ -80,7 +75,7 @@ def list_thing_events(
     _user: User = Depends(require_scopes(["things:read"])),
 ) -> dict[str, Any]:
     return ThingCatalogQueryService(session).list_affordances(
-        _decode_thing_id(thing_id),
+        decode_thing_id(thing_id),
         "events",
     )
 
@@ -93,7 +88,7 @@ def get_thing_event(
     _user: User = Depends(require_scopes(["things:read"])),
 ) -> dict[str, Any]:
     return ThingCatalogQueryService(session).get_affordance(
-        _decode_thing_id(thing_id),
+        decode_thing_id(thing_id),
         "events",
         name,
     )
@@ -123,7 +118,7 @@ def get_owned_thing(
     session: SessionDep,
     _user: User = Depends(require_scopes(["things:read"])),
 ) -> dict[str, Any]:
-    return ThingCatalogQueryService(session).get_owned_thing(_decode_thing_id(thing_id))
+    return ThingCatalogQueryService(session).get_owned_thing(decode_thing_id(thing_id))
 
 
 @router.post("/things", status_code=201)
@@ -145,7 +140,7 @@ def update_owned_thing(
     _user: User = Depends(require_scopes(["things:write"])),
 ) -> dict[str, Any]:
     sanitized = validate_document(document)
-    decoded_thing_id = _decode_thing_id(thing_id)
+    decoded_thing_id = decode_thing_id(thing_id)
     record = ThingCatalogWriteService(session).update(decoded_thing_id, sanitized)
     return serialize_thing(record, include_document=True)
 
@@ -156,6 +151,6 @@ def delete_owned_thing(
     session: SessionDep,
     _user: User = Depends(require_scopes(["things:delete"])),
 ) -> dict[str, str]:
-    decoded_thing_id = _decode_thing_id(thing_id)
+    decoded_thing_id = decode_thing_id(thing_id)
     ThingCatalogWriteService(session).delete(decoded_thing_id)
     return {"id": decoded_thing_id, "status": "deleted"}

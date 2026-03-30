@@ -38,16 +38,10 @@ services:
       EMBEDDING_API_KEY: ${EMBEDDING_API_KEY:-}
       WOT_RUNTIME_TIMEOUT_SECONDS: ${WOT_RUNTIME_TIMEOUT_SECONDS:-15}
       WOT_RUNTIME_SUBSCRIPTION_TIMEOUT_SECONDS: ${WOT_RUNTIME_SUBSCRIPTION_TIMEOUT_SECONDS:-5}
-      CONTENT_STORE_DIR: /data/content
-      CONTENT_STORE_DEFAULT_TTL_SECONDS: ${CONTENT_STORE_DEFAULT_TTL_SECONDS:-3600}
-      CONTENT_STORE_CLEANUP_INTERVAL_SECONDS: ${CONTENT_STORE_CLEANUP_INTERVAL_SECONDS:-60}
       WOT_SUBSCRIPTION_SETUP_TIMEOUT_MS: ${WOT_SUBSCRIPTION_SETUP_TIMEOUT_MS:-0}
-      WOT_INLINE_PAYLOAD_MAX_BYTES: ${WOT_INLINE_PAYLOAD_MAX_BYTES:-65536}
-      WOT_OFFLOADED_PAYLOAD_TTL_SECONDS: ${WOT_OFFLOADED_PAYLOAD_TTL_SECONDS:-86400}
     ports:
       - "8000:8000"
     volumes:
-      - content-store:/data/content
       - wot-registry-data:/data/registry
     healthcheck:
       test: ["CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health', timeout=3)"]
@@ -86,5 +80,4 @@ services:
 
 volumes:
   valkey-data:
-  content-store:
   wot-registry-data:

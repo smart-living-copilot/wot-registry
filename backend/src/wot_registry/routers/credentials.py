@@ -1,11 +1,10 @@
 from typing import Any
-from urllib.parse import unquote
 
 from fastapi import APIRouter, Body, Depends
 from pydantic import BaseModel
 
 from wot_registry.auth import User, require_scopes, require_service
-from wot_registry.routers import SessionDep
+from wot_registry.routers import SessionDep, decode_thing_id
 from wot_registry.credentials.service import CredentialService
 
 
@@ -17,10 +16,6 @@ class SetCredentialBody(BaseModel):
     credentials: dict[str, Any]
 
 
-def _decode_thing_id(thing_id: str) -> str:
-    return unquote(thing_id)
-
-
 @router.put("/credentials/{thing_id:path}/{security_name}")
 def upsert_credential(
     thing_id: str,
@@ -29,7 +24,7 @@ def upsert_credential(
     body: SetCredentialBody = Body(...),
     _user: User = Depends(require_scopes(["credentials:write"])),
 ) -> dict[str, str]:
-    decoded_id = _decode_thing_id(thing_id)
+    decoded_id = decode_thing_id(thing_id)
     CredentialService(session).upsert(
         thing_id=decoded_id,
         security_name=security_name,
@@ -45,7 +40,7 @@ def list_thing_credentials(
     session: SessionDep,
     _user: User = Depends(require_scopes(["credentials:read"])),
 ) -> dict[str, Any]:
-    decoded_id = _decode_thing_id(thing_id)
+    decoded_id = decode_thing_id(thing_id)
     items = CredentialService(session).list_for_thing(decoded_id)
     return {"items": items}
 
@@ -57,7 +52,7 @@ def remove_credential(
     session: SessionDep,
     _user: User = Depends(require_scopes(["credentials:write"])),
 ) -> dict[str, str]:
-    decoded_id = _decode_thing_id(thing_id)
+    decoded_id = decode_thing_id(thing_id)
     CredentialService(session).delete(
         thing_id=decoded_id,
         security_name=security_name,
