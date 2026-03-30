@@ -40,7 +40,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ env.REGISTRY }}/${{ github.repository }}/wot-registry
+          images: ${{ env.REGISTRY }}/${{ github.repository_owner }}/wot-registry
           tags: |
             type=ref,event=branch
             type=ref,event=tag
@@ -87,7 +87,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ env.REGISTRY }}/${{ github.repository }}/wot-runtime
+          images: ${{ env.REGISTRY }}/${{ github.repository_owner }}/wot-runtime
           tags: |
             type=ref,event=branch
             type=ref,event=tag

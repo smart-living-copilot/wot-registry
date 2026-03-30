@@ -14,7 +14,7 @@ services:
     build:
       context: .
       dockerfile: docker/Dockerfile.registry
-    image: ghcr.io/2wot/wot-registry:latest
+    image: ghcr.io/smart-living-copilot/wot-registry:latest
     depends_on:
       valkey:
         condition: service_healthy
@@ -55,7 +55,7 @@ services:
     build:
       context: .
       dockerfile: docker/Dockerfile.runtime
-    image: ghcr.io/2wot/wot-runtime:latest
+    image: ghcr.io/smart-living-copilot/wot-runtime:latest
     depends_on:
       valkey:
         condition: service_healthy
