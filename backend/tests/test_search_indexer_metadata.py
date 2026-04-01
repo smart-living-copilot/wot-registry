@@ -37,5 +37,4 @@ def test_build_index_metadata_shapes_vector_metadata():
         "promptVersion": "v-cleanup",
         "summarySource": "llm",
         "summaryModel": "gpt-test",
-        "chunkType": "device",
     }

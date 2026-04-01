@@ -42,24 +42,24 @@ def anyio_backend():
 def test_search_index_document_keeps_expected_fields():
     document = SearchIndexDocument(
         page_content="device summary",
-        metadata={"chunkType": "device"},
+        metadata={"title": "Alpha Sensor"},
     )
 
     assert document.page_content == "device summary"
-    assert document.metadata["chunkType"] == "device"
+    assert document.metadata["title"] == "Alpha Sensor"
 
 
 def test_search_index_match_keeps_expected_fields():
     match = SearchIndexMatch(
-        chunk_id="urn:thing:alpha::property::temperature",
+        chunk_id="urn:thing:alpha",
         document="Temperature property",
-        metadata={"chunkType": "property"},
+        metadata={"title": "Alpha Sensor"},
         score=0.92,
     )
 
-    assert match.chunk_id == "urn:thing:alpha::property::temperature"
+    assert match.chunk_id == "urn:thing:alpha"
     assert match.document == "Temperature property"
-    assert match.metadata["chunkType"] == "property"
+    assert match.metadata["title"] == "Alpha Sensor"
     assert match.score == 0.92
 
 
@@ -91,14 +91,7 @@ async def test_chroma_search_vector_store_round_trip(tmp_path):
                 thing_id,
                 SearchIndexDocument(
                     page_content="Kitchen air monitor with temperature summary",
-                    metadata={"id": thing_id, "chunkType": "device", "title": "Alpha"},
-                ),
-            ),
-            (
-                f"{thing_id}::property::temperature",
-                SearchIndexDocument(
-                    page_content="Temperature sensor in the kitchen",
-                    metadata={"id": thing_id, "chunkType": "property"},
+                    metadata={"id": thing_id, "title": "Alpha"},
                 ),
             ),
         ],
@@ -106,7 +99,7 @@ async def test_chroma_search_vector_store_round_trip(tmp_path):
 
     device_chunk = await store.get_device_chunk(thing_id)
     assert device_chunk is not None
-    assert device_chunk.metadata["chunkType"] == "device"
+    assert device_chunk.metadata["title"] == "Alpha"
 
     matches = await store.query_similar("kitchen temperature", limit=3)
     assert matches
@@ -136,7 +129,6 @@ async def test_chroma_store_skips_empty_list_metadata_values(tmp_path):
                     page_content="Device summary without tags",
                     metadata={
                         "id": thing_id,
-                        "chunkType": "device",
                         "tags": [],
                         "locationCandidates": [],
                         "propertyNames": [],

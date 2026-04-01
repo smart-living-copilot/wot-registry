@@ -9,6 +9,7 @@ from sqlalchemy.orm import sessionmaker
 from wot_registry.config import Settings
 from wot_registry.bootstrap import BackendBootstrapService
 from wot_registry.search import ThingSearchService, set_active_search_service
+from wot_registry.search_indexer.store import SearchVectorStore
 from wot_registry.stream_runtime import StreamConsumerState
 from wot_registry.thing_events import (
     ThingEventOutboxPublisherState,
@@ -107,12 +108,18 @@ async def stop_thing_event_outbox(app: FastAPI) -> None:
     )
 
 
-async def start_search_indexer(app: FastAPI, *, settings: Settings) -> None:
+async def start_search_indexer(
+    app: FastAPI,
+    *,
+    settings: Settings,
+    vector_store: SearchVectorStore | None = None,
+) -> None:
     from wot_registry.search_indexer.consumer import SearchIndexerStreamConsumer
 
     consumer = SearchIndexerStreamConsumer(
         settings=settings,
         state=app.state.search_indexer_consumer_state,
+        vector_store=vector_store,
     )
     app.state.search_indexer_consumer = consumer
     await consumer.start()
@@ -165,8 +172,12 @@ async def start_backend_runtime(
 
     try:
         start_thing_event_outbox(app, session_factory=session_factory)
-        await start_search_indexer(app, settings=settings)
         start_search_service(app, settings=settings)
+        await start_search_indexer(
+            app,
+            settings=settings,
+            vector_store=app.state.search_service.vector_store,
+        )
     except Exception:
         await shutdown_backend_runtime(app)
         raise

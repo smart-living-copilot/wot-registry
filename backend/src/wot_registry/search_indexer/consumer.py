@@ -9,6 +9,7 @@ import redis.asyncio as redis
 from wot_registry.config import Settings
 from wot_registry.search_indexer.runtime import SearchIndexerStreamConfig
 from wot_registry.search_indexer.service import SearchIndexerService
+from wot_registry.search_indexer.store import SearchVectorStore
 from wot_registry.search_indexer.stream_utils import parse_stream_event
 from wot_registry.stream_runtime import StreamConsumerState, ensure_stream_group
 
@@ -27,12 +28,13 @@ class SearchIndexerStreamConsumer:
         *,
         settings: Settings,
         state: SearchIndexerConsumerState,
+        vector_store: SearchVectorStore | None = None,
     ) -> None:
         self._settings = settings
         self._stream = SearchIndexerStreamConfig.from_settings(settings)
         self._state = state
         self._redis: redis.Redis | None = None
-        self._service = SearchIndexerService(settings)
+        self._service = SearchIndexerService(settings, vector_store=vector_store)
 
     async def start(self) -> None:
         await self._service.start()

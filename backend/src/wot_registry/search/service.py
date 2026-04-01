@@ -41,22 +41,18 @@ class ThingSearchService:
         )
 
     async def search(self, query: str, k: int = 5) -> list[dict[str, Any]]:
-        results = await self._vector_store.query_similar(query, limit=k * 3)
-        seen: dict[str, dict[str, Any]] = {}
-        for result in results:
-            meta = result.metadata
-            thing_id = meta.get("id", "")
-            if thing_id in seen:
-                continue
-            seen[thing_id] = {
-                "id": thing_id,
-                "title": meta.get("title", ""),
-                "description": meta.get("description", ""),
-                "tags": meta.get("tags", []),
+        results = await self._vector_store.query_similar(query, limit=k)
+        return [
+            {
+                "id": result.metadata.get("id", ""),
+                "title": result.metadata.get("title", ""),
+                "description": result.metadata.get("description", ""),
+                "tags": result.metadata.get("tags", []),
                 "score": round(result.score, 4),
                 "summary": result.document,
             }
-        return list(seen.values())[:k]
+            for result in results
+        ]
 
     async def get_index_status(
         self,
@@ -88,6 +84,10 @@ class ThingSearchService:
             "action_names": _coerce_string_list(metadata.get("actionNames")),
             "event_names": _coerce_string_list(metadata.get("eventNames")),
         }
+
+    @property
+    def vector_store(self) -> SearchVectorStore:
+        return self._vector_store
 
     async def close(self) -> None:
         if self._embeddings is not None:

@@ -6,7 +6,7 @@ from typing import Any
 from openai import AsyncOpenAI
 
 
-SUMMARY_PROMPT_VERSION = "v5"
+SUMMARY_PROMPT_VERSION = "v6"
 
 SYSTEM_PROMPT = (
     "You create concise, search-friendly summaries for Web of Things "

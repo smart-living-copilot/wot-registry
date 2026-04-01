@@ -15,7 +15,6 @@ def build_index_metadata(
     summary_source: str,
     summary_model: str,
     indexed_at: str | None = None,
-    chunk_type: str = "device",
 ) -> dict[str, Any]:
     return {
         "id": td_metadata["id"],
@@ -32,5 +31,4 @@ def build_index_metadata(
         "promptVersion": prompt_version,
         "summarySource": summary_source,
         "summaryModel": summary_model,
-        "chunkType": chunk_type,
     }

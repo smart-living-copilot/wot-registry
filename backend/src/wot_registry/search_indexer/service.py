@@ -1,11 +1,11 @@
 from __future__ import annotations
 
 import logging
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Any
 
 from wot_registry.config import Settings
-from wot_registry.search_indexer.chunking import generate_all_chunks
+from wot_registry.search_indexer.chunking import generate_chunk
 from wot_registry.search_indexer.embeddings import (
     create_openai_embeddings,
     create_openai_client,
@@ -15,7 +15,7 @@ from wot_registry.search_indexer.prompting import (
     SUMMARY_PROMPT_VERSION,
     generate_summary,
 )
-from wot_registry.search_indexer.store import SearchIndexDocument, SearchVectorStore
+from wot_registry.search_indexer.store import SearchVectorStore
 from wot_registry.search_indexer.summary_utils import (
     ThingTDMetadata,
     clean_text,
@@ -29,13 +29,19 @@ logger = logging.getLogger(__name__)
 
 
 @dataclass(frozen=True)
-class PreparedIndexChunks:
+class PreparedIndexEntry:
     thing_id: str
-    chunks: list[tuple[str, SearchIndexDocument]] = field(default_factory=list)
+    chunk_id: str
+    document: Any
 
 
 class SearchIndexerService:
-    def __init__(self, settings: Settings) -> None:
+    def __init__(
+        self,
+        settings: Settings,
+        *,
+        vector_store: SearchVectorStore | None = None,
+    ) -> None:
         self._settings = settings
         self._embeddings = create_openai_embeddings(
             base_url=settings.OPENAI_EMBEDDING_API_BASE_URL,
@@ -46,7 +52,7 @@ class SearchIndexerService:
             base_url=settings.OPENAI_API_BASE_URL,
             api_key=settings.OPENAI_API_KEY,
         )
-        self._vector_store = SearchVectorStore(
+        self._vector_store = vector_store or SearchVectorStore(
             embeddings=self._embeddings,
             collection_name=settings.SEARCH_VECTOR_COLLECTION_NAME,
             persist_directory=settings.SEARCH_VECTOR_STORE_DIR,
@@ -80,7 +86,7 @@ class SearchIndexerService:
 
         try:
             if event_type == "remove":
-                await self._remove_index_chunks(thing_id)
+                await self._remove_index_entry(thing_id)
                 return
 
             if event_type not in {"create", "update"}:
@@ -89,24 +95,24 @@ class SearchIndexerService:
                 )
                 return
 
-            prepared = await self._prepare_index_chunks(
+            prepared = await self._prepare_index_entry(
                 event,
                 thing_id=thing_id,
                 event_type=event_type,
             )
-            await self._upsert_index_chunks(prepared)
+            await self._upsert_index_entry(prepared)
             logger.info("Successfully indexed thing: %s", thing_id)
         except Exception as exc:
             logger.error("Error managing vector for '%s': %s", thing_id, exc)
             raise
 
-    async def _prepare_index_chunks(
+    async def _prepare_index_entry(
         self,
         event: dict[str, Any],
         *,
         thing_id: str,
         event_type: str,
-    ) -> PreparedIndexChunks:
+    ) -> PreparedIndexEntry:
         thing_td = normalize_thing_td_payload(event)
         td_metadata: ThingTDMetadata = extract_td_metadata(thing_td)
         summary = await generate_summary(
@@ -114,7 +120,7 @@ class SearchIndexerService:
             model=self._settings.OPENAI_MODEL,
             thing_td=thing_td,
         )
-        base_metadata = build_index_metadata(
+        metadata = build_index_metadata(
             td_metadata,
             event_type=event_type,
             td_hash=compute_td_hash(thing_td),
@@ -122,17 +128,19 @@ class SearchIndexerService:
             summary_source="llm",
             summary_model=self._settings.OPENAI_MODEL,
         )
-        chunks = generate_all_chunks(
-            thing_td, td_metadata, summary.strip(), base_metadata
+        chunk_id, document = generate_chunk(
+            thing_td, td_metadata, summary.strip(), metadata
         )
-        return PreparedIndexChunks(thing_id=thing_id, chunks=chunks)
+        return PreparedIndexEntry(
+            thing_id=thing_id, chunk_id=chunk_id, document=document
+        )
 
-    async def _upsert_index_chunks(self, prepared: PreparedIndexChunks) -> None:
+    async def _upsert_index_entry(self, prepared: PreparedIndexEntry) -> None:
         await self._vector_store.replace_thing_chunks(
             prepared.thing_id,
-            prepared.chunks,
+            [(prepared.chunk_id, prepared.document)],
         )
 
-    async def _remove_index_chunks(self, thing_id: str) -> None:
+    async def _remove_index_entry(self, thing_id: str) -> None:
         await self._vector_store.delete_thing_chunks(thing_id)
         logger.info("Removed vectors for deleted thing: %s", thing_id)

@@ -48,6 +48,10 @@ class StubSearchService:
             "event_names": ["overheated"],
         }
 
+    @property
+    def vector_store(self):
+        return None
+
     async def close(self) -> None:
         return None
 
@@ -91,7 +95,7 @@ def stub_search_runtime(monkeypatch):
         app.state.search_service = None
         set_active_search_service(None)
 
-    async def fake_start_search_indexer(app, *, settings):
+    async def fake_start_search_indexer(app, *, settings, vector_store=None):
         app.state.search_indexer_consumer = object()
 
     async def fake_stop_search_indexer(app):
